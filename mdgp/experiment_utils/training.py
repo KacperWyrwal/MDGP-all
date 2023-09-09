@@ -20,6 +20,7 @@ __all__ = [
 class TrainingArguments: 
     num_steps: int = field(default=1000, metadata={'help': 'Number of steps to train for'})
     val_every_n_steps: int = field(default=50, metadata={'help': 'Number of steps between validation runs'})
+    sample_hidden: str = field(default='naive', metadata={'help': 'Name of the function to sample from the hidden space. Must be one of ["naive", "pathwise"]'})
 
 
 def train_step(model, inputs, targets, criterion, sample_hidden='naive', loggers=None, step=None): 
@@ -48,25 +49,24 @@ def test_step(model, inputs, targets, sample_hidden='naive', train_targets=None,
     return metrics 
 
 
-def fit(model, train_inputs, train_targets, criterion, optimizer, val_inputs=None, val_targets=None, 
-        val_every_n_epochs=50, sample_hidden='naive', num_epochs=1000, train_loggers=None, val_loggers=None): 
+def fit(model, optimizer, criterion, train_inputs, train_targets, val_inputs=None, val_targets=None, train_loggers=None, val_loggers=None, training_args: TrainingArguments = None): 
     validate = val_inputs is not None and val_targets is not None
     metrics = {'elbo': None, 'nlpd': None, 'smse': None}
 
-    pbar = tqdm(range(1, num_epochs + 1), desc="Fitting")
-    for epoch in pbar:
+    pbar = tqdm(range(1, training_args.num_steps + 1), desc="Fitting")
+    for step in pbar:
         # Training step and display training metrics 
         optimizer.zero_grad(set_to_none=True)
-        loss = train_step(model=model, inputs=train_inputs, targets=train_targets, criterion=criterion, sample_hidden=sample_hidden, 
-                          loggers=train_loggers, step=epoch)
+        loss = train_step(model=model, inputs=train_inputs, targets=train_targets, criterion=criterion, sample_hidden=training_args.sample_hidden, 
+                          loggers=train_loggers, step=step)
         loss.backward()
         optimizer.step() 
         metrics.update({'elbo': loss.item()})
 
         # Validation step and display validation metrics 
-        if validate and ((epoch - 1) % val_every_n_epochs == 0):
-            val_metrics = test_step(model=model, inputs=val_inputs, targets=val_targets, sample_hidden=sample_hidden, 
-                                    train_targets=train_targets, loggers=val_loggers, step=epoch)
+        if validate and ((step - 1) % training_args.val_every_n_steps == 0):
+            val_metrics = test_step(model=model, inputs=val_inputs, targets=val_targets, sample_hidden=training_args.sample_hidden, 
+                                    train_targets=train_targets, loggers=val_loggers, step=step)
             metrics.update({'nlpd': val_metrics['negative_log_predictive_density'].item(), 
                             'smse': val_metrics['standardized_mean_squared_error'].item()})
         # Display metrics 

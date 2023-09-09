@@ -23,7 +23,6 @@ class ModelArguments:
     nu: float = field(default=2.5, metadata={'help': 'Smoothness parameter'})
     tangent_to_manifold: str = field(default='exp', metadata={'help': 'Name of the function to map from the tangent space to the manifold. Must be one of ["exp", "log"]'})
     project_to_tangent: str = field(default='intrinsic', metadata={'help': 'Name of the function to map from the manifold to the tangent space. Must be one of ["intrinsic", "extrinsic"]'})
-    sample_hidden: str = field(default='naive', metadata={'help': 'Name of the function to sample from the hidden space. Must be one of ["naive", "spherical_harmonics"]'})
     parametrised_frame: bool = field(default=False, metadata={'help': 'Whether to use a parametrised frame'})
     rotated_frame: bool = field(default=False, metadata={'help': 'Whether to use a rotated frame'})
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})

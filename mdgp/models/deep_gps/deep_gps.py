@@ -141,7 +141,7 @@ class EuclideanManifoldDeepGP(ManifoldDeepGP):
         super().__init__(hidden_gps=hidden_gps, output_gp=output_gp, project_to_tangent=project_to_tangent, tangent_to_manifold=tangent_to_manifold, space=space, parametrised_frame=parametrised_frame)
 
 
-class EuclideanDeepGP:
+class EuclideanDeepGP(gpytorch.models.deep_gps.DeepGP):
 
     def __init__(
         self,
@@ -174,6 +174,7 @@ class EuclideanDeepGP:
             learn_inducing_locations=learn_inducing_locations,
             mean_type='constant',
         )
+        self.likelihood = gpytorch.likelihoods.GaussianLikelihood()
         
     def forward(self, inputs: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False, **kwargs):
         for gp_layer in self.hidden_gp_layers:

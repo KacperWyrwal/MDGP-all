@@ -26,6 +26,18 @@ class ModelArguments:
     parametrised_frame: bool = field(default=False, metadata={'help': 'Whether to use a parametrised frame'})
     rotated_frame: bool = field(default=False, metadata={'help': 'Whether to use a rotated frame'})
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})
+    inducing_points: Tensor = field(default=None, metadata={
+        'help': 'Inducing points. If None, then they are generated automatically.',
+        'exclude_from_asdict': True, 
+    })
+
+    def __post_init__(self):
+        if self.inducing_points is None: 
+            self.inducing_points = get_inducing_points(num_inducing=self.num_inducing, space=self.space)
+
+    def dict_factory(self, x):
+        return {k: v for k, v in x 
+                if self.__dataclass_fields__[k].metadata.get('exclude_from_asdict', False) is False}
 
     @property 
     def space(self):
@@ -46,14 +58,13 @@ def get_outputscale_prior(outputscale_mean: float = 1.0):
 
 def create_model(model_args: ModelArguments):
     space = Hypersphere(dim=2)
-    inducing_points = sphere_uniform_grid(n=model_args.num_inducing)
     model_name = model_args.model_name
     outputscale_prior = get_outputscale_prior(outputscale_mean=model_args.outputscale_mean)
     if model_name == 'geometric_manifold':
         return GeometricManifoldDeepGP(
             space=space, 
-            inducing_points=inducing_points, 
             outputscale_prior=outputscale_prior, 
+            inducing_points=model_args.inducing_points, 
             num_hidden=model_args.num_hidden, 
             num_eigenfunctions=model_args.num_eigenfunctions, 
             learn_inducing_locations=model_args.learn_inducing_locations, 
@@ -65,7 +76,7 @@ def create_model(model_args: ModelArguments):
     if model_name == 'euclidean_manifold': 
         return EuclideanManifoldDeepGP(
             space=space,
-            inducing_points=inducing_points,
+            inducing_points=model_args.inducing_points,
             outputscale_prior=outputscale_prior,
             num_hidden=model_args.num_hidden, 
             learn_inducing_locations=model_args.learn_inducing_locations, 
@@ -75,7 +86,7 @@ def create_model(model_args: ModelArguments):
         )
     if model_name == 'euclidean': 
         return EuclideanDeepGP(
-            inducing_points=inducing_points, 
+            inducing_points=model_args.inducing_points, 
             outputscale_prior=outputscale_prior,
             num_hidden=model_args.num_hidden, 
             nu=model_args.nu, 

@@ -156,7 +156,7 @@ class EuclideanDeepGP(gpytorch.models.deep_gps.DeepGP):
         # Dimension of the manifold is the last dimension of the inducing points
         hidden_output_dims = inducing_points.shape[-1]
 
-        self.hidden_gp_layers = [
+        self.hidden_gp_layers = torch.nn.ModuleList([
             EuclideanDeepGPLayer(
                 output_dims=hidden_output_dims,
                 inducing_points=inducing_points,
@@ -166,7 +166,7 @@ class EuclideanDeepGP(gpytorch.models.deep_gps.DeepGP):
                 outputscale_prior=outputscale_prior,
             )
             for _ in range(num_hidden)
-        ]
+        ])
         self.output_gp_layer = EuclideanDeepGPLayer(
             output_dims=output_dims,
             inducing_points=inducing_points,

@@ -1,2 +1,1 @@
-from mdgp.kernels.geometric_kernels_wrappers import GPytorchGeometricKernel
 from mdgp.kernels.geometric_matern_kernel import GeometricMaternKernel

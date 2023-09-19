@@ -1,11 +1,13 @@
-import torch 
-from geometric_kernels.kernels import MaternKarhunenLoeveKernel
-from geometric_kernels.spaces import DiscreteSpectrumSpace
-from mdgp.kernels.geometric_kernels_wrappers import GPytorchGeometricKernel
+from geometric_kernels.frontends.pytorch.gpytorch import GPytorchGeometricKernel
+from geometric_kernels.kernels.geometric_kernels import MaternKarhunenLoeveKernel
 
 
-class GeometricMaternKernel(GPytorchGeometricKernel):
-
-    def __init__(self, space: DiscreteSpectrumSpace, nu: float = 2.5, num_eigenfunctions: int = 10, batch_shape=torch.Size([]), optimize_nu=False, **kwargs):
-        geometric_kernel = MaternKarhunenLoeveKernel(space=space, num_eigenfunctions=num_eigenfunctions)
-        super().__init__(geometric_kernel=geometric_kernel, nu=nu, optimize_nu=optimize_nu, batch_shape=batch_shape, **kwargs)
+class GeometricMaternKernel(GPytorchGeometricKernel): 
+    def __init__(self, space, lengthscale=1.0, nu=2.5, trainable_nu=True, num_eigenfunctions=20, normalize=True, **kwargs): 
+        geometric_kernel = MaternKarhunenLoeveKernel(
+            space=space, 
+            num_eigenfunctions=num_eigenfunctions, 
+            normalize=normalize, 
+        )
+        super().__init__(geometric_kernel, lengthscale=lengthscale, nu=nu, trainable_nu=trainable_nu, **kwargs)
+        

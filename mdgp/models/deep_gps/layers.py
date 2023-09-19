@@ -35,24 +35,24 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
         covar_x = self.covar_module(x)
         return MultivariateNormal(mean_x, covar_x)  
     
-    def sample_naive(self, inputs, are_samples=False, **kwargs):
-        return sample_naive(super().__call__(inputs, are_samples=are_samples, **kwargs))
+    def sample_naive(self, inputs, **kwargs):
+        return sample_naive(self.__call__(inputs, **kwargs))
 
-    def sample_pathwise(self, inputs, are_samples=False):
+    def sample_pathwise(self, inputs, are_samples=False, **kwargs):
         raise NotImplementedError
     
     def __call__(self, inputs, are_samples=False, sample=False, mean=False, **kwargs):
         if mean: 
             with gpytorch.settings.num_likelihood_samples(1):
                 return super().__call__(inputs, are_samples=are_samples, **kwargs).mean[0]
-        if sample is None or sample is False: 
+        if sample is False: 
             return super().__call__(inputs, are_samples=are_samples, **kwargs)
         if sample == 'naive':
-            return self.sample_naive(inputs=inputs, are_samples=are_samples, **kwargs)
-        if sample == 'pathwise': 
-            return self.sample_pathwise(inputs=inputs, are_samples=are_samples)
-        raise NotImplementedError(f"Expected sample argument to be either 'naive', 'pathwise', False, or None. Got {sample}")
-        
+            return self.sample_naive(inputs, **kwargs)
+        if sample == 'pathwise':
+            return self.sample_pathwise(inputs, are_samples=are_samples, **kwargs)
+        raise NotImplementedError(f"Expected sample argument to be either 'naive', 'pathwise', or False. Got {sample}")
+            
 
 class GeometricDeepGPLayer(DeepGPLayer):
     def __init__(
@@ -76,7 +76,7 @@ class GeometricDeepGPLayer(DeepGPLayer):
             batch_shape=batch_shape,
         )
         base_kernel = GeometricMaternKernel(
-            space=space, nu=nu, num_eigenfunctions=num_eigenfunctions, batch_shape=batch_shape, optimize_nu=optimize_nu
+            space=space, nu=nu, num_eigenfunctions=num_eigenfunctions, batch_shape=batch_shape, trainable_nu=optimize_nu
         )
         covar_module = gpytorch.kernels.ScaleKernel(
             base_kernel=base_kernel,
@@ -104,22 +104,13 @@ class GeometricDeepGPLayer(DeepGPLayer):
             self.variational_strategy.variational_params_initialized.fill_(1)
 
         # Take sample 
-        sample_shape = torch.Size([gpytorch.settings.num_likelihood_samples.value()])
-        if are_samples: # [S, N, D]
-            inputs_head_shape = inputs.shape[1:-1]
-            inputs = inputs.flatten(start_dim=1, end_dim=-2)
-            sample = torch.stack([self.sampler(inputs_, sample_shape=torch.Size([])) for inputs_ in inputs.unbind(0)], dim=0)
-        else:
-            inputs_head_shape = inputs.shape[:-1]
-            inputs = inputs.flatten(start_dim=0, end_dim=-2)
-            sample = self.sampler(inputs, sample_shape=sample_shape)
-
-        # Reshape to [S, N, O]
-        if sample.dim() == 1: # [*N]
-            return sample.reshape(*inputs_head_shape) # [N]
-        if sample.dim() == 2: # [S, *N]. Sidenote: [O, *N] cannot happen because num_likelihood_samples is at least 1 
-            return sample.reshape(*sample_shape, *inputs_head_shape) # [S, N]
-        return sample.mT.reshape(*sample_shape, *inputs_head_shape, -1) # [S, O, *N] -> [S, *N, O] -> [S, N, O]
+        if are_samples: 
+            sample_shape = torch.Size([])
+            sample = self.sampler(inputs.unsqueeze(-3), sample_shape=sample_shape) # [S, O, N]
+        else: 
+            sample_shape = torch.Size([gpytorch.settings.num_likelihood_samples.value()])
+            sample = self.sampler(inputs, sample_shape=sample_shape) # [S, O, N]
+        return sample.mT
 
 
 class EuclideanDeepGPLayer(DeepGPLayer):

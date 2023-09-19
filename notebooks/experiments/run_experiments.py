@@ -28,8 +28,8 @@ def run_experiment(experiment_config, dir_path):
     
     # 4. Train and validate model
     print("Training...")
-    train_csv_logger = CSVLogger(root_dir=dir_path, name='train') 
-    val_csv_logger = CSVLogger(root_dir='logs/csv/val/', name='val') 
+    train_csv_logger = CSVLogger(root_dir=os.path.join(dir_path, 'train')) 
+    val_csv_logger = CSVLogger(root_dir=os.path.join(dir_path, 'val')) 
     train_loggers = [train_csv_logger]
     val_loggers = [val_csv_logger]
     model = fit(model=model, optimizer=optimizer, criterion=elbo, train_loggers=train_loggers, 
@@ -41,7 +41,7 @@ def run_experiment(experiment_config, dir_path):
 
     # # 5. Test model 
     print("Testing...")
-    test_csv_logger = CSVLogger(root_dir=dir_path, name='test')
+    test_csv_logger = CSVLogger(root_dir=os.path.join(dir_path, 'test'))
     test_loggers = [test_csv_logger]
     test_metrics = test_step(model=model, inputs=test_inputs, targets=test_targets, sample_hidden=training_args.sample_hidden, 
                              loggers=test_loggers, train_targets=train_targets)
@@ -77,17 +77,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     crawl_and_run(start_directory=args.dir_path, config_file_name=args.config_name, overwrite=args.overwrite)
-
-
-    """
-    Recursively crawl from the given root directory finding any config.json files. For every such file, 
-    depending on the overwrite setting and the status field, read the model, data, and training arguments 
-    and run main. 
-
-    TODO 
-    [ ] move deep approximate elbo and optimizer into mdgp.experiment_utils.training 
-    [ ] pass root_dir to CSVLogger as the current directory of the crawler
-    [ ] Change the names of the CSV files to val_metrics, train_metrics, and test_metrics 
-    
-    """
 

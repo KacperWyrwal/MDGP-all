@@ -1,0 +1,45 @@
+{
+    "model_arguments": {
+        "space_name": "hypersphere",
+        "space_dim": 2,
+        "model_name": "geometric_manifold",
+        "num_hidden": [
+            0,
+            1,
+            2,
+            3,
+            4
+        ],
+        "num_inducing": 60,
+        "num_eigenfunctions": 20,
+        "learn_inducing_locations": false,
+        "optimize_nu": true,
+        "nu": 2.5,
+        "tangent_to_manifold": "exp",
+        "project_to_tangent": "extrinsic",
+        "parametrised_frame": false,
+        "rotated_frame": false,
+        "outputscale_mean": 0.01
+    },
+    "data_arguments": {
+        "target_name": "singular",
+        "num_train": [100, 200, 400],
+        "num_val": 500,
+        "num_test": 2000,
+        "noise_std": 0.01
+    },
+    "training_arguments": {
+        "num_steps": 1000,
+        "val_every_n_steps": 50,
+        "sample_hidden": "naive"
+    },
+    "run": 0,
+    "status": "ready",
+    "runs": [
+        0,
+        1,
+        2,
+        3,
+        4
+    ]
+}

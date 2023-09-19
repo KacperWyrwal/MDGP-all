@@ -4,6 +4,11 @@ from torch import Tensor
 import math 
 import torch 
 from scipy.special import sph_harm
+from coclust.clustering import SphericalKmeans
+
+
+def sphere_kmeans_centers(x, k=5): 
+    return torch.from_numpy(SphericalKmeans(n_clusters=k).fit(x.detach().numpy()).centers.toarray())
 
 
 def sph_to_cart(theta: Tensor, phi: Tensor) -> Tuple[Tensor, Tensor, Tensor]: 

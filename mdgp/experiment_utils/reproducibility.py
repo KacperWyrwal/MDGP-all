@@ -42,7 +42,7 @@ def non_default_fields(dc) -> dict:
     result = {}
     for field in fields(dc):
         current_value = getattr(dc, field.name)        
-        if current_value != field.default:
+        if current_value != field.default and field.name != 'inducing_points': # TODO move to ModelArguments
             result[field.name] = current_value
     return result
 
@@ -111,7 +111,7 @@ class ExperimentConfig:
     
     def to_dict(self): 
         return {
-            'model_arguments': asdict(self.model_arguments),
+            'model_arguments': asdict(self.model_arguments, dict_factory=self.model_arguments.dict_factory),
             'data_arguments': asdict(self.data_arguments),
             'training_arguments': asdict(self.training_arguments),
             'run': self.run,

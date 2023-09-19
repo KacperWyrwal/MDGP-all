@@ -56,6 +56,9 @@ def main(dir_path, overwrite=False, config_file_name='config.json'):
         if experiment_config.status == ExperimentStatus.RUNNING: 
             set_experiment_seed(experiment_config.seed)
             run_experiment(experiment_config=experiment_config, dir_path=dir_path)
+        else:
+            print(f"""Skipping expeiement with the config: {os.path.join(dir_path, experiment_config.file_name)}
+            because it has status: {experiment_config.status}""")
 
 
 def crawl_and_run(start_directory, config_file_name='config.json', overwrite=False):

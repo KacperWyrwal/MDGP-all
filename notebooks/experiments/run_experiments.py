@@ -53,7 +53,7 @@ def run_experiment(experiment_config, dir_path):
 
 def main(dir_path, overwrite=False, config_file_name='config.json'):
     with ExperimentConfigReader(os.path.join(dir_path, config_file_name), overwrite=overwrite) as experiment_config: 
-        if experiment_config.status == ExperimentStatus.RUNNING: 
+        if experiment_config.can_run:
             set_experiment_seed(experiment_config.seed)
             run_experiment(experiment_config=experiment_config, dir_path=dir_path)
         else:

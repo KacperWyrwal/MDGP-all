@@ -1,1 +1,0 @@
-from mdgp.kernels.geometric_matern_kernel import GeometricMaternKernel

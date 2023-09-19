@@ -1,1 +1,0 @@
-from mdgp.frames.frames import Frame, HypersphereFrame

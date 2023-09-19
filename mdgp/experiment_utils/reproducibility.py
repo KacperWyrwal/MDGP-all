@@ -217,6 +217,7 @@ class ExperimentConfigReader:
         self.file_path = file_path
         self.overwrite = overwrite
         self.experiment_config = None
+        self.can_run = False 
 
     def __enter__(self):
         # This part is executed when entering the 'with' block
@@ -224,13 +225,17 @@ class ExperimentConfigReader:
         if (self.experiment_config.status == ExperimentStatus.READY or 
             self.experiment_config.status == ExperimentStatus.FAILED or 
             (self.experiment_config.status == ExperimentStatus.COMPLETED and self.overwrite)):
+            self.can_run = True 
             self._update_status(ExperimentStatus.RUNNING)
         return self.experiment_config
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.experiment_config.status == ExperimentStatus.RUNNING:
+        if self.can_run is True:
             status = ExperimentStatus.COMPLETED if exc_type is None else ExperimentStatus.FAILED
             self._update_status(status)
+            # This is kind of redundant, since the context manager will no longer be used, 
+            # but it makes it more explicit
+            self.can_run = False 
 
     def _update_status(self, status):
         # Instead of directly modifying the JSON, we update the ExperimentConfig object and save it

@@ -35,8 +35,8 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
         covar_x = self.covar_module(x)
         return MultivariateNormal(mean_x, covar_x)  
     
-    def sample_naive(self, inputs, **kwargs):
-        return sample_naive(self.__call__(inputs, **kwargs))
+    def sample_naive(self, inputs, are_samples=False, **kwargs):
+        return sample_naive(self.__call__(inputs, are_samples=are_samples, **kwargs))
 
     def sample_pathwise(self, inputs, are_samples=False, **kwargs):
         raise NotImplementedError
@@ -48,7 +48,7 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
         if sample is False: 
             return super().__call__(inputs, are_samples=are_samples, **kwargs)
         if sample == 'naive':
-            return self.sample_naive(inputs, **kwargs)
+            return self.sample_naive(inputs, are_samples=are_samples, **kwargs)
         if sample == 'pathwise':
             return self.sample_pathwise(inputs, are_samples=are_samples, **kwargs)
         raise NotImplementedError(f"Expected sample argument to be either 'naive', 'pathwise', or False. Got {sample}")

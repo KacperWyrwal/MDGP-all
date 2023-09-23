@@ -19,13 +19,13 @@ def train_step(model, inputs, targets, criterion, sample_hidden='naive', loggers
     return loss 
 
 
-def fit(model, optimizer, criterion, train_inputs, train_targets, train_loggers=None, training_args: FitArguments = None): 
+def fit(model, optimizer, criterion, train_inputs, train_targets, train_loggers=None, fit_args: FitArguments = None): 
     metrics = {'elbo': None}
-    pbar = tqdm(range(1, training_args.num_steps + 1), desc="Fitting")
+    pbar = tqdm(range(1, fit_args.num_steps + 1), desc="Fitting")
     for step in pbar:
         # Training step and display training metrics 
         optimizer.zero_grad(set_to_none=True)
-        loss = train_step(model=model, inputs=train_inputs, targets=train_targets, criterion=criterion, sample_hidden=training_args.sample_hidden, 
+        loss = train_step(model=model, inputs=train_inputs, targets=train_targets, criterion=criterion, sample_hidden=fit_args.sample_hidden, 
                           loggers=train_loggers, step=step)
         loss.backward()
         optimizer.step() 

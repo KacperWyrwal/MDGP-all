@@ -3,6 +3,7 @@ from torch import Tensor
 
 # Imports 
 import torch 
+import warnings
 from dataclasses import dataclass, field
 from mdgp.bo_experiment.utils import space_class_from_name
 from mdgp.models.deep_gps import GeometricManifoldDeepGP
@@ -26,6 +27,10 @@ class ModelArguments:
     parametrised_frame: bool = field(default=False, metadata={'help': 'Whether to use a parametrised frame'})
     rotated_frame: bool = field(default=False, metadata={'help': 'Whether to use a rotated frame'})
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})
+
+    def __post_init__(self):
+        if self.model_name == 'deep' and self.num_hidden: 
+            warnings.warn("A deep model with no hidden layers is specificied. Are you sure this is what you want?")
 
     def dict_factory(self, x):
         return {k: v for k, v in x 
@@ -51,11 +56,7 @@ class ModelArguments:
             def get_mll(model, y: Tensor | None = None): 
                 return ExactMarginalLogLikelihood(model.likelihood, model)
             return get_mll
-        if self.model_name == 'deep' and self.num_hidden == 0:
-            def get_mll(model, y: Tensor):
-                return VariationalELBO(model=model, likelihood=model.likelihood, num_data=y.numel())
-            return get_mll
-        if self.model_name == 'deep' and self.num_hidden > 0:
+        if self.model_name == 'deep':
             def get_mll(model, y: Tensor):
                 return DeepApproximateMLL(
                     VariationalELBO(model=model, likelihood=model.likelihood, num_data=y.numel())
@@ -64,7 +65,7 @@ class ModelArguments:
         raise ValueError(f"Unknown model name {self.model_name}")
 
 
-def create_model(inducing_points, model_args: ModelArguments, 
+def create_model(model_args: ModelArguments, inducing_points: Tensor | None = None,
                  train_x: Tensor | None = None, train_y: Tensor | None = None):
     if model_args.model_name == 'deep':
         return GeometricManifoldDeepGP(

@@ -5,7 +5,7 @@ from geometric_kernels.spaces import Space
 import gpytorch
 from mdgp.kernels import GeometricMaternKernel
 
-class GeometricManifoldGP(gpytorch.models.ExactGP): 
+class GeometricManifoldExactGP(gpytorch.models.ExactGP): 
     """
     The simplest possible GP model with a GeometricMaternKernel taking in a space parameter.
 

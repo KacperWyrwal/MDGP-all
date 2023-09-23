@@ -12,6 +12,7 @@ from gpytorch.priors import GammaPrior
 from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
 from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
 from mdgp.bo_experiment.model.acquisition import DeepAnalyticAcquisitionFunction
+from mdgp.bo_experiment.model.botorch import BotorchGP
 
 
 @dataclass
@@ -31,6 +32,7 @@ class ModelArguments:
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})
     acqf_name: str = field(default="log_expected_improvement", metadata={"help": "Name of the acquisition function to use"})
     acqf_maximize: bool = field(default=False, metadata={"help": "Whether to maximize or minimize the target function"})
+    posterior_sample_method: str = field(default="pathwise", metadata={"help": "Name of the method to sample from the posterior. Must be one of ['pathwise', 'naive']"})
 
 
     def __post_init__(self):
@@ -98,25 +100,31 @@ def acqf_class_from_name(name):
 def create_model(model_args: ModelArguments, inducing_points: Tensor | None = None,
                  train_x: Tensor | None = None, train_y: Tensor | None = None):
     if model_args.model_name == 'deep':
-        return GeometricManifoldDeepGP(
-            inducing_points=inducing_points, 
-            space=model_args.space, 
-            outputscale_prior=model_args.outputscale_prior, 
-            num_hidden=model_args.num_hidden, 
-            num_eigenfunctions=model_args.num_eigenfunctions, 
-            learn_inducing_locations=model_args.learn_inducing_locations, 
-            optimize_nu=model_args.optimize_nu, 
-            nu=model_args.nu,
-            project_to_tangent=model_args.project_to_tangent, 
-            tangent_to_manifold=model_args.tangent_to_manifold,
+        return BotorchGP(
+            GeometricManifoldDeepGP(
+                inducing_points=inducing_points, 
+                space=model_args.space, 
+                outputscale_prior=model_args.outputscale_prior, 
+                num_hidden=model_args.num_hidden, 
+                num_eigenfunctions=model_args.num_eigenfunctions, 
+                learn_inducing_locations=model_args.learn_inducing_locations, 
+                optimize_nu=model_args.optimize_nu, 
+                nu=model_args.nu,
+                project_to_tangent=model_args.project_to_tangent, 
+                tangent_to_manifold=model_args.tangent_to_manifold,
+            ), 
+            posterior_sample_method=model_args.posterior_sample_method,
         )
     if model_args.model_name == 'exact': 
-        return GeometricManifoldExactGP(
-            train_x=train_x,
-            train_y=train_y,
-            space=model_args.space,
-            nu=model_args.nu,
-            trainable_nu=model_args.optimize_nu,
-            num_eigenfunctions=model_args.num_eigenfunctions,
+        return BotorchGP(
+            GeometricManifoldExactGP(
+                train_x=train_x,
+                train_y=train_y,
+                space=model_args.space,
+                nu=model_args.nu,
+                trainable_nu=model_args.optimize_nu,
+                num_eigenfunctions=model_args.num_eigenfunctions,
+            ), 
+            posterior_sample_method=model_args.posterior_sample_method
         )
     raise ValueError(f"Unknown model name: {model_args.model_name}. Must be one of ['deep', 'exact']")

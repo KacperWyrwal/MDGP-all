@@ -25,3 +25,8 @@ class GeometricManifoldExactGP(gpytorch.models.ExactGP):
             normalize=normalize,
             lengthscale=lengthscale
         )
+
+    def forward(self, x, **kwargs): 
+        mean_x = self.mean_module(x)
+        covar_x = self.covar_module(x)
+        return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)

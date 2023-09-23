@@ -4,7 +4,7 @@ from torch import Tensor
 
 
 import torch 
-from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement
+from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
 from botorch.optim import gen_batch_initial_conditions, optimize_acqf
 from pymanopt.manifolds import Sphere 
 from pymanopt import optimizers
@@ -37,6 +37,15 @@ class BOArguments:
             max_iterations=self.optimizer_max_iterations, 
             verbosity=self.optimizer_verbosity
         )
+    
+    @property 
+    def acqf_factory(self): 
+        def get_acqf(model, best_f, posterior_transform=None) -> AnalyticAcquisitionFunction: 
+            return acqf_class_from_name(self.acqf_name)(
+                model=model, best_f=best_f, 
+                maximize=self.maximize, posterior_transform=posterior_transform
+            )
+        return get_acqf
     
 
 def acqf_class_from_name(name):

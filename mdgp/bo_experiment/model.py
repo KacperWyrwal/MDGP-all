@@ -6,6 +6,7 @@ import torch
 from dataclasses import dataclass, field
 from mdgp.bo_experiment.utils import space_class_from_name
 from mdgp.models.deep_gps import GeometricManifoldDeepGP
+from mdgp.models.exact_gps import GeometricManifoldExactGP
 from gpytorch.priors import GammaPrior
 from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
 
@@ -63,7 +64,8 @@ class ModelArguments:
         raise ValueError(f"Unknown model name {self.model_name}")
 
 
-def create_model(inducing_points, model_args: ModelArguments):
+def create_model(inducing_points, model_args: ModelArguments, 
+                 train_x: Tensor | None = None, train_y: Tensor | None = None):
     if model_args.model_name == 'deep':
         return GeometricManifoldDeepGP(
             inducing_points=inducing_points, 
@@ -78,5 +80,12 @@ def create_model(inducing_points, model_args: ModelArguments):
             tangent_to_manifold=model_args.tangent_to_manifold,
         )
     if model_args.model_name == 'exact': 
-        raise NotImplementedError("Exact model not implemented yet.")
+        return GeometricManifoldExactGP(
+            train_x=train_x,
+            train_y=train_y,
+            space=model_args.space,
+            nu=model_args.nu,
+            trainable_nu=model_args.optimize_nu,
+            num_eigenfunctions=model_args.num_eigenfunctions,
+        )
     raise ValueError(f"Unknown model name: {model_args.model_name}. Must be one of ['deep', 'exact']")

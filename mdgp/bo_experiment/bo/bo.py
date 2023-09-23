@@ -4,7 +4,6 @@ from torch import Tensor
 
 
 import torch 
-from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
 from botorch.optim import gen_batch_initial_conditions, optimize_acqf
 from pymanopt.manifolds import Sphere 
 from pymanopt import optimizers
@@ -20,8 +19,6 @@ class BOArguments:
     num_restarts: int = field(default=5, metadata={"help": "Number of restarts"})
     raw_samples: int = field(default=100, metadata={"help": "Number of raw samples"})
     q: int = field(default=1, metadata={"help": "Number of candidates to generate at each iteration"})
-    maximize: bool = field(default=False, metadata={"help": "Whether to maximize or minimize the target function"})
-    acqf_name: str = field(default="log_expected_improvement", metadata={"help": "Name of the acquisition function to use"})
     optimizer_name: str = field(default="steepest_descent", metadata={"help": "Name of the optimizer to use"})
     optimizer_max_iterations: int = field(default=100, metadata={"help": "Maximum number of iterations for the optimizer"})
     optimizer_verbosity: int = field(default=0, metadata={"help": "Verbosity of the optimizer"})
@@ -37,23 +34,6 @@ class BOArguments:
             max_iterations=self.optimizer_max_iterations, 
             verbosity=self.optimizer_verbosity
         )
-    
-    @property 
-    def acqf_factory(self): 
-        def get_acqf(model, best_f, posterior_transform=None) -> AnalyticAcquisitionFunction: 
-            return acqf_class_from_name(self.acqf_name)(
-                model=model, best_f=best_f, 
-                maximize=self.maximize, posterior_transform=posterior_transform
-            )
-        return get_acqf
-    
-
-def acqf_class_from_name(name):
-    if name == "log_expected_improvement":
-        return LogExpectedImprovement
-    if name == "expected_improvement":
-        return ExpectedImprovement
-    raise ValueError(f"Unknown acquisition function {name}")
 
 
 def manifold_class_from_name(name):

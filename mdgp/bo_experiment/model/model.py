@@ -10,6 +10,8 @@ from mdgp.models.deep_gps import GeometricManifoldDeepGP
 from mdgp.models.exact_gps import GeometricManifoldExactGP
 from gpytorch.priors import GammaPrior
 from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
+from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
+from mdgp.bo_experiment.model.acquisition import DeepAnalyticAcquisitionFunction
 
 
 @dataclass
@@ -27,6 +29,9 @@ class ModelArguments:
     parametrised_frame: bool = field(default=False, metadata={'help': 'Whether to use a parametrised frame'})
     rotated_frame: bool = field(default=False, metadata={'help': 'Whether to use a rotated frame'})
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})
+    acqf_name: str = field(default="log_expected_improvement", metadata={"help": "Name of the acquisition function to use"})
+    acqf_maximize: bool = field(default=False, metadata={"help": "Whether to maximize or minimize the target function"})
+
 
     def __post_init__(self):
         if self.model_name == 'deep' and self.num_hidden: 
@@ -63,6 +68,31 @@ class ModelArguments:
                 )
             return get_mll
         raise ValueError(f"Unknown model name {self.model_name}")
+    
+    @property 
+    def acqf_factory(self): 
+        if self.model_name == 'exact':
+            def get_acqf(model, best_f, posterior_transform=None) -> AnalyticAcquisitionFunction: 
+                return acqf_class_from_name(self.acqf_name)(
+                    model=model, best_f=best_f, 
+                    maximize=self.acqf_maximize, posterior_transform=posterior_transform
+                )
+            return get_acqf 
+        if self.model_name == 'deep':
+            def get_acqf(model, best_f, posterior_transform=None) -> AnalyticAcquisitionFunction: 
+                return DeepAnalyticAcquisitionFunction(acqf_class_from_name(self.acqf_name)(
+                    model=model, best_f=best_f, 
+                    maximize=self.acqf_maximize, posterior_transform=posterior_transform
+                ))
+            return get_acqf
+    
+
+def acqf_class_from_name(name):
+    if name == "log_expected_improvement":
+        return LogExpectedImprovement
+    if name == "expected_improvement":
+        return ExpectedImprovement
+    raise ValueError(f"Unknown acquisition function {name}")
 
 
 def create_model(model_args: ModelArguments, inducing_points: Tensor | None = None,

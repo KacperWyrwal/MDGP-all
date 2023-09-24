@@ -9,10 +9,11 @@ from pymanopt.manifolds import Sphere
 from pymanopt import optimizers
 from dataclasses import dataclass, field 
 from mdgp.bo_experiment.bo.manifold_botorch import ManifoldRandomPointGenerator, gen_candidates_manifold
+from mdgp.bo_experiment.utils import ExcludeFromNameMixin
 
 
 @dataclass 
-class BOArguments: 
+class BOArguments(ExcludeFromNameMixin): 
     manifold_name: str = field(default="sphere", metadata={"help": "Name of the manifold to optimize on"})
     manifold_dim: int = field(default=2, metadata={"help": "Dimension of the manifold"})
     num_iter: int = field(default=200, metadata={"help": "Number of iterations"})
@@ -22,6 +23,10 @@ class BOArguments:
     optimizer_name: str = field(default="steepest_descent", metadata={"help": "Name of the optimizer to use"})
     optimizer_max_iterations: int = field(default=100, metadata={"help": "Maximum number of iterations for the optimizer"})
     optimizer_verbosity: int = field(default=0, metadata={"help": "Verbosity of the optimizer"})
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.exclude_from_name(["manifold_name", "manifold_dim"])
 
     @property
     def manifold(self) -> Manifold: 

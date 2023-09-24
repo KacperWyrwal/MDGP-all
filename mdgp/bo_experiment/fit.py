@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
 from tqdm.autonotebook import tqdm 
 from mdgp.experiment_utils.logging import log 
+from mdgp.bo_experiment.utils import ExcludeFromNameMixin
 
 
 
 @dataclass
-class FitArguments: 
+class FitArguments(ExcludeFromNameMixin): 
     num_steps: int = field(default=500, metadata={'help': 'Number of steps to train for'})
     sample_hidden: str = field(default='naive', metadata={'help': 'Name of the function to sample from the hidden space. Must be one of ["naive", "pathwise"]'})
     lr: float = field(default=1e-2, metadata={'help': 'Learning rate'})

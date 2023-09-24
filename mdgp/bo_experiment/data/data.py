@@ -3,7 +3,7 @@ from pymanopt.manifolds.manifold import Manifold
 
 import torch 
 from mdgp.bo_experiment.data.target_functions import Ackley, Levy, StyblinskiTang, ProductOfSines
-from mdgp.bo_experiment.utils import manifold_class_from_name
+from mdgp.bo_experiment.utils import manifold_class_from_name, ExcludeFromNameMixin
 from dataclasses import dataclass, field
 
 
@@ -20,12 +20,16 @@ def target_function_class_from_name(name):
 
 
 @dataclass
-class DataArguments: 
+class DataArguments(ExcludeFromNameMixin): 
     target_function_name: str = field(default="ackley", metadata={"help": "Target function to optimize"})
     num_initial_data: int = field(default=5, metadata={"help": "Number of initial data points"})
     initial_data_method: str = field(default="random", metadata={"help": "Method to generate initial data"})
     manifold_name: str = field(default="hypersphere", metadata={"help": "Manifold to optimize on"})
     manifold_dim: int = field(default=2, metadata={"help": "Dimension of the manifold"})
+
+    def __post_init__(self): 
+        super().__post_init__()
+        self.exclude_from_name(["manifold_name", "manifold_dim"])
 
     @property
     def target_function(self): 

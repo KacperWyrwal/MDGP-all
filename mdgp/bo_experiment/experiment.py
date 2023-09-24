@@ -36,7 +36,7 @@ def non_default_fields(dc) -> dict:
     result = {}
     for field in fields(dc):
         current_value = getattr(dc, field.name)        
-        if current_value != field.default and field.name != 'inducing_points': # TODO move to ModelArguments
+        if current_value != field.default and not dc.excluded_from_name(field.name):
             result[field.name] = current_value
     return result
 
@@ -49,9 +49,6 @@ def get_experiment_name(*args) -> str:
     """
     all_arguments_list = [non_default_fields(arg) for arg in args]
     all_arguments_dict = {k: v for d in all_arguments_list for k, v in d.items()}
-
-    if len(all_arguments_dict) != sum(map(len, all_arguments_list)):
-        raise ValueError('There are repeated argument names between data, training, and model arguments')
     
     if len(all_arguments_dict) == 0: 
         return 'default'
@@ -86,7 +83,7 @@ class ExperimentConfig:
     
     @property 
     def experiment_name(self):
-        return get_experiment_name(self.data_arguments, self.training_arguments, self.model_arguments)
+        return get_experiment_name(self.data_arguments, self.fit_arguments, self.bo_arguments, self.model_arguments)
     
     @property 
     def run_name(self):
@@ -94,7 +91,7 @@ class ExperimentConfig:
     
     def to_dict(self): 
         return {
-            'model_arguments': asdict(self.model_arguments, dict_factory=self.model_arguments.dict_factory),
+            'model_arguments': asdict(self.model_arguments),
             'data_arguments': asdict(self.data_arguments),
             'fit_arguments': asdict(self.fit_arguments),
             'bo_arguments': asdict(self.bo_arguments),
@@ -159,13 +156,13 @@ def create_experiment_config_from_json(json_config, dir_path, overwrite=False) -
     # Get all combinations of arguments
     for model_args, data_args, fit_args, bo_args in product(model_args_list, data_args_list, fit_arguments, bo_arguments):
         for run in runs:
-            config = ExperimentConfig.from_dict({
-                'model_arguments': ModelArguments(**model_args),
-                'data_arguments': DataArguments(**data_args),
-                'fit_arguments': FitArguments(**fit_args),
-                'bo_arguments': BOArguments(**bo_args),
-                'run': run,
-            })
+            config = ExperimentConfig(
+                model_arguments=ModelArguments(**model_args),
+                data_arguments=DataArguments(**data_args),
+                fit_arguments=FitArguments(**fit_args),
+                bo_arguments=BOArguments(**bo_args),
+                run=run,
+            )
 
             # Create experiment directory if it doesn't exist
             experiment_path = os.path.join(dir_path, config.experiment_name)

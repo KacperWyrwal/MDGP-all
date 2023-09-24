@@ -13,10 +13,11 @@ from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogL
 from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
 from mdgp.bo_experiment.model.acquisition import DeepAnalyticAcquisitionFunction
 from mdgp.bo_experiment.model.botorch import BotorchGP
+from mdgp.bo_experiment.utils import ExcludeFromNameMixin
 
 
 @dataclass
-class ModelArguments:
+class ModelArguments(ExcludeFromNameMixin):
     space_name: str = field(default='hypersphere', metadata={'help': 'The space where the data lives'})
     space_dim: int = field(default=2, metadata={'help': 'The dimension of the space where the data lives'})
     model_name: str = field(default='deep', metadata={'help': 'Name of the model. Must be one of ["geometric_manifold", "euclidean_manifold", "euclidean"]'})
@@ -36,12 +37,9 @@ class ModelArguments:
 
 
     def __post_init__(self):
+        super().__post_init__()
         if self.model_name == 'deep' and self.num_hidden: 
             warnings.warn("A deep model with no hidden layers is specificied. Are you sure this is what you want?")
-
-    def dict_factory(self, x):
-        return {k: v for k, v in x 
-                if self.__dataclass_fields__[k].metadata.get('exclude_from_asdict', False) is False}
 
     @property 
     def space(self):

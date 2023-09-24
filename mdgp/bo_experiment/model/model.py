@@ -53,8 +53,14 @@ class ModelArguments:
     
     @property 
     def optimizer_factory(self): 
+        if self.model_name == 'exact':
+            maximize = False 
+        elif self.model_name == 'deep':
+            maximize = True 
+        else:
+            raise ValueError(f"Unknown model name {self.model_name}")
         def get_optimizer(model, lr): 
-            return torch.optim.Adam(model.parameters(), lr=lr)
+            return torch.optim.Adam(model.parameters(), lr=lr, maximize=maximize)
         return get_optimizer
     
     @property

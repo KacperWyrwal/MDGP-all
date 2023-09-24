@@ -5,6 +5,7 @@ License: MIT
 Contact: noemie.jaquier@kit.edu, leonel.rozo@de.bosch.com
 """
 from abc import ABC, abstractmethod
+from typing import Any
 import numpy as np
 import torch
 
@@ -92,6 +93,15 @@ class BenchmarkFunction(ABC):
 
     def get_base(self):
         return get_base(self.manifold)
+    
+    def __call__(self, x): 
+        if x.ndim == 2 and x.shape[0] == 1:
+            return self.compute_function_torch(x)
+        # x is of shape [..., dim]
+        y = torch.empty(x.shape[:-1], dtype=x.dtype, device=x.device)
+        for index in np.ndindex(x.shape[:-1]):
+            y[index] = self.compute_function_torch(x[index])
+        return y 
 
 
 class Ackley(BenchmarkFunction):

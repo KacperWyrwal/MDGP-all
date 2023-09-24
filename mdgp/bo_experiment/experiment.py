@@ -175,6 +175,7 @@ def create_experiment_config_from_json(json_config, dir_path, overwrite=False) -
             # Maybe skip if config file already exists
             config_path = os.path.join(run_path, config.file_name)
             if os.path.exists(config_path) and not overwrite: 
+                print(f"Skipping config file {config_path} because it already exists and overwrite is set to False.")
                 continue 
             
             # Save config file 

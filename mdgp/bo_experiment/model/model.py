@@ -38,7 +38,7 @@ class ModelArguments(ExcludeFromNameMixin):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.model_name == 'deep' and self.num_hidden: 
+        if self.model_name == 'deep' and self.num_hidden == 0: 
             warnings.warn("A deep model with no hidden layers is specificied. Are you sure this is what you want?")
 
     @property 

@@ -16,7 +16,6 @@ class ProjectToTangentIntrinsic(torch.nn.Module):
 
 class ProjectToTangentExtrinsic(torch.nn.Module):
     def __init__(self, space: Space) -> None:
-        assert isinstance(space, Hypersphere) and space.dim == 2, f"Only Hypersphere supported. Got space={space}"
         super().__init__()
         self.manifold = space_to_manifold(space)
 

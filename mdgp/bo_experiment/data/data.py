@@ -4,6 +4,7 @@ from pymanopt.manifolds.manifold import Manifold
 import torch 
 from mdgp.bo_experiment.data.target_functions import Ackley, Levy, StyblinskiTang, ProductOfSines
 from mdgp.bo_experiment.utils import manifold_class_from_name, ExcludeFromNameMixin
+from mdgp.utils import sphere_uniform_grid
 from dataclasses import dataclass, field
 
 
@@ -42,6 +43,8 @@ class DataArguments(ExcludeFromNameMixin):
 
 def get_initial_data(data_args: DataArguments): 
     if data_args.initial_data_method == "random": 
-        x = torch.tensor([data_args.manifold.random_point() for _ in range(data_args.num_initial_data)])
-        return x
+        return torch.tensor([data_args.manifold.random_point() for _ in range(data_args.num_initial_data)])
+    if data_args.initial_data_method == "grid" and data_args.manifold_name == "hypersphere" and data_args.manifold_dim == 2: 
+        return sphere_uniform_grid(data_args.num_initial_data)
+        
     raise ValueError(f"Unknown initial data method {data_args.initial_data_method}")

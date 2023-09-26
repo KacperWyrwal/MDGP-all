@@ -23,6 +23,7 @@ class BOArguments(ExcludeFromNameMixin):
     optimizer_name: str = field(default="steepest_descent", metadata={"help": "Name of the optimizer to use"})
     optimizer_max_iterations: int = field(default=100, metadata={"help": "Maximum number of iterations for the optimizer"})
     optimizer_verbosity: int = field(default=0, metadata={"help": "Verbosity of the optimizer"})
+    switch_to_deep_iter: int | None = field(default=None, metadata={"help": "Switch to deep model after this iteration"})
 
     def __post_init__(self):
         super().__post_init__()

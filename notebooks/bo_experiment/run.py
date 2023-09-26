@@ -24,11 +24,14 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
     best_y = y.min()
          
     pbar = tqdm(range(bo_args.num_iter), desc="BO")
-    for _ in pbar: 
+    for iteration in pbar: 
         # 1. Create model, mll, and optimizer 
         model = create_model(model_args=model_args, train_x=x, train_y=y, inducing_points=x)
         optimizer = model_args.optimizer_factory(model=model.base_model, lr=fit_args.lr)
         mll = model_args.mll_factory(model.base_model, y=y)
+
+        if bo_args.switch_to_deep_iter == iteration:
+            model_args.model_name == 'deep'
 
         # 2. Fit model to observations  
         if model_args.model_name == 'exact':

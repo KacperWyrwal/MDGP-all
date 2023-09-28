@@ -9,7 +9,12 @@ from mdgp.utils import extrinsic_dimension
 class ManifoldDeepGP(gpytorch.models.deep_gps.DeepGP): 
 
     def __init__(self, hidden_gps, output_gp, space, project_to_tangent='instrinsic', tangent_to_manifold='exp', parametrised_frame=False):
-        get_normal_vector = 'nn' if parametrised_frame is True else None
+        if parametrised_frame is True: 
+            get_normal_vector = 'nn'
+        elif parametrised_frame is False:
+            get_normal_vector = None
+        else:
+            get_normal_vector = parametrised_frame
         super().__init__()
         self.hidden_layers = torch.nn.ModuleList([
             ManifoldToManifoldDeepGPLayer(gp=gp, space=space, project_to_tangent=project_to_tangent, tangent_to_manifold=tangent_to_manifold, get_normal_vector=get_normal_vector)
@@ -28,11 +33,11 @@ class ManifoldDeepGP(gpytorch.models.deep_gps.DeepGP):
         y = self.output_layer(x, are_samples=are_samples, sample=sample_output, mean=mean)
         return hidden_factors, y 
 
-    def forward(self, x: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False):
+    def forward(self, x: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False, resample_weights: bool = True):
         for hidden_layer in self.hidden_layers: 
-            x = hidden_layer(x, are_samples=are_samples, sample=sample_hidden, mean=mean)
+            x = hidden_layer(x, are_samples=are_samples, sample=sample_hidden, mean=mean, resample_weights=resample_weights)
             are_samples = False if mean else True 
-        return self.output_layer(x, are_samples=are_samples, sample=sample_output, mean=mean)
+        return self.output_layer(x, are_samples=are_samples, sample=sample_output, mean=mean, resample_weights=resample_weights)
     
 
 class GeometricManifoldDeepGP(ManifoldDeepGP):
@@ -77,6 +82,7 @@ class GeometricManifoldDeepGP(ManifoldDeepGP):
                 whitened_variational_strategy=whitened_variational_strategy,
                 sampler_inv_jitter=sampler_inv_jitter, 
                 outputscale_prior=outputscale_prior,
+                zero_mean=True, 
             )
             for _ in range(num_hidden)
         ]
@@ -92,6 +98,7 @@ class GeometricManifoldDeepGP(ManifoldDeepGP):
             optimize_nu=optimize_nu, 
             whitened_variational_strategy=whitened_variational_strategy,
             sampler_inv_jitter=sampler_inv_jitter,
+            zero_mean=False, 
         )
 
         super().__init__(hidden_gps=hidden_gps, output_gp=output_gp, project_to_tangent=project_to_tangent, tangent_to_manifold=tangent_to_manifold, space=space, parametrised_frame=parametrised_frame)

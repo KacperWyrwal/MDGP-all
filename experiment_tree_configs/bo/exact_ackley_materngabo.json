@@ -2,18 +2,18 @@
     "model_arguments": {
         "space_name": "hypersphere",
         "space_dim": 3,
-        "model_name": "deep",
-        "num_hidden": 1,
+        "model_name": "exact",
+        "num_hidden": 0,
         "num_eigenfunctions": 10,
         "learn_inducing_locations": false,
         "optimize_nu": false,
         "nu": 2.5,
         "tangent_to_manifold": "exp",
-        "project_to_tangent": "extrinsic",
+        "project_to_tangent": "intrinsic",
         "parametrised_frame": false,
         "rotated_frame": false,
         "outputscale_mean": 1.0,
-        "acqf_name": "log_expected_improvement",
+        "acqf_name": "expected_improvement",
         "acqf_maximize": false,
         "posterior_sample_method": "pathwise"
     },
@@ -38,8 +38,7 @@
         "q": 1,
         "optimizer_name": "steepest_descent",
         "optimizer_max_iterations": 100,
-        "optimizer_verbosity": 0, 
-        "switch_to_deep_iter": 100
+        "optimizer_verbosity": 0
     },
     "runs": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     "status": "ready"

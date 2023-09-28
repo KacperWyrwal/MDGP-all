@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from mdgp.bo_experiment.utils import space_class_from_name
 from mdgp.models.deep_gps import GeometricManifoldDeepGP
 from mdgp.models.exact_gps import GeometricManifoldExactGP
-from gpytorch.priors import GammaPrior
+from gpytorch.priors import GammaPrior, NormalPrior
 from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
 from botorch.acquisition import ExpectedImprovement, LogExpectedImprovement, AnalyticAcquisitionFunction
 from mdgp.bo_experiment.model.acquisition import DeepAnalyticAcquisitionFunction
@@ -31,6 +31,8 @@ class ModelArguments(ExcludeFromNameMixin):
     parametrised_frame: bool = field(default=False, metadata={'help': 'Whether to use a parametrised frame'})
     rotated_frame: bool = field(default=False, metadata={'help': 'Whether to use a rotated frame'})
     outputscale_mean: float = field(default=1.0, metadata={'help': 'Mean of the outputscale'})
+    outputscale_std: float = field(default=1.0, metadata={'help': 'Standard deviation of the outputscale'})
+    outputscale_prior_class: str = field(default='gamma', metadata={'help': 'Name of the outputscale prior class. Must be one of ["gamma", "normal"]'})
     acqf_name: str = field(default="log_expected_improvement", metadata={"help": "Name of the acquisition function to use"})
     acqf_maximize: bool = field(default=False, metadata={"help": "Whether to maximize or minimize the target function"})
     posterior_sample_method: str = field(default="pathwise", metadata={"help": "Name of the method to sample from the posterior. Must be one of ['pathwise', 'naive']"})
@@ -47,7 +49,11 @@ class ModelArguments(ExcludeFromNameMixin):
     
     @property
     def outputscale_prior(self):
-        return GammaPrior(concentration=1.0, rate=1 / self.outputscale_mean)
+        if self.outputscale_prior_class == 'gamma':
+            return GammaPrior(concentration=1.0, rate=1 / self.outputscale_mean)
+        if self.outputscale_prior_class == 'normal': 
+            return NormalPrior(loc=0.0, scale=self.outputscale_std)
+        raise ValueError(f"Unknown outputscale prior class {self.outputscale_prior_class}")
     
     @property 
     def optimizer_factory(self): 
@@ -116,6 +122,7 @@ def create_model(model_args: ModelArguments, inducing_points: Tensor | None = No
                 nu=model_args.nu,
                 project_to_tangent=model_args.project_to_tangent, 
                 tangent_to_manifold=model_args.tangent_to_manifold,
+                parametrised_frame=model_args.parametrised_frame,
             ), 
             posterior_sample_method=model_args.posterior_sample_method,
         )

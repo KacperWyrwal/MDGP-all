@@ -41,7 +41,7 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
     def sample_pathwise(self, inputs, are_samples=False, **kwargs):
         raise NotImplementedError
     
-    def __call__(self, inputs, are_samples=False, sample=False, mean=False, **kwargs):
+    def __call__(self, inputs, are_samples=False, sample=False, mean=False, resample_weights=True, **kwargs):
         if mean: 
             with gpytorch.settings.num_likelihood_samples(1):
                 return super().__call__(inputs, are_samples=are_samples, **kwargs).mean[0]
@@ -50,7 +50,7 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
         if sample == 'naive':
             return self.sample_naive(inputs, are_samples=are_samples, **kwargs)
         if sample == 'pathwise':
-            return self.sample_pathwise(inputs, are_samples=are_samples, **kwargs)
+            return self.sample_pathwise(inputs, are_samples=are_samples, resample_weights=resample_weights, **kwargs)
         raise NotImplementedError(f"Expected sample argument to be either 'naive', 'pathwise', or False. Got {sample}")
             
 
@@ -68,13 +68,19 @@ class GeometricDeepGPLayer(DeepGPLayer):
         whitened_variational_strategy=False, 
         sampler_inv_jitter=10e-8,
         outputscale_prior=None,
+        zero_mean=True, 
     ) -> None: 
         batch_shape = torch.Size([output_dims]) if output_dims is not None else torch.Size([])
 
         # Initialize mean and kernel modules 
-        mean_module = gpytorch.means.ConstantMean(
-            batch_shape=batch_shape,
-        )
+        if zero_mean:
+            mean_module = gpytorch.means.ZeroMean(
+                batch_shape=batch_shape,
+            )
+        else: 
+            mean_module = gpytorch.means.ConstantMean(
+                batch_shape=batch_shape,
+            )
         base_kernel = GeometricMaternKernel(
             space=space, nu=nu, num_eigenfunctions=num_eigenfunctions, batch_shape=batch_shape, trainable_nu=optimize_nu
         )
@@ -93,7 +99,7 @@ class GeometricDeepGPLayer(DeepGPLayer):
         vi_sampler = VISampler(variational_distribution=self.variational_strategy._variational_distribution)
         self.sampler = PosteriorSampler(rff_sampler=rff_sampler, vi_sampler=vi_sampler, inducing_points=inducing_points, whitened_variational_strategy=whitened_variational_strategy, inv_jitter=sampler_inv_jitter)
 
-    def sample_pathwise(self, inputs, are_samples=False):
+    def sample_pathwise(self, inputs, are_samples=False, resample_weights=True):
         # Clear cache if training, since otherwise we risk "trying to backward through the graph a second time" errors 
         if self.training: 
             self.variational_strategy._clear_cache()
@@ -106,10 +112,10 @@ class GeometricDeepGPLayer(DeepGPLayer):
         # Take sample 
         if are_samples: 
             sample_shape = torch.Size([])
-            sample = self.sampler(inputs.unsqueeze(-3), sample_shape=sample_shape) # [S, O, N]
+            sample = self.sampler(inputs.unsqueeze(-3), sample_shape=sample_shape, resample=resample_weights) # [S, O, N]
         else: 
             sample_shape = torch.Size([gpytorch.settings.num_likelihood_samples.value()])
-            sample = self.sampler(inputs, sample_shape=sample_shape) # [S, O, N]
+            sample = self.sampler(inputs, sample_shape=sample_shape, resample=resample_weights) # [S, O, N]
         return sample.mT
 
 
@@ -160,8 +166,8 @@ class ManifoldToManifoldDeepGPLayer(torch.nn.Module):
         if tangent_to_manifold == 'retr': 
             self.tangent_to_manifold = Retraction(space=space)
 
-    def forward(self, x, are_samples=False, return_hidden=False, mean=False, sample='naive'): 
-        coeff = self.gp(x, mean=mean, sample=sample, are_samples=are_samples)
+    def forward(self, x, are_samples=False, return_hidden=False, mean=False, sample='naive', resample_weights=True): 
+        coeff = self.gp(x, mean=mean, sample=sample, are_samples=are_samples, resample_weights=resample_weights)
         u = self.project_to_tangent(x=x, coeff=coeff)
         y = self.tangent_to_manifold(x=x, u=u)
         if return_hidden: 

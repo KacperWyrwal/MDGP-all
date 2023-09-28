@@ -33,7 +33,7 @@ class RFFSampler(torch.nn.Module):
     # TODO: Change the weights shape to go by the broadcasted batch shapes of the inputs and the kernel
     def weights(self, num_samples, inputs=None, resample=True) -> torch.Tensor:
         broadcasted_batch_shape = torch.broadcast_shapes(self.covar_module.batch_shape, inputs.shape[:-2]) if inputs is not None else self.covar_module.batch_shape
-        if resample: 
+        if resample or self._weights is None: 
             self._weights = torch.randn(*broadcasted_batch_shape, self.num_features, num_samples) # [M, O]
         else: 
             assert self._weights.shape[-1] == num_samples, f"Sample shape mismatch. Resample or use sample_shape with product {self._weights.shape[-1]}."

@@ -11,13 +11,13 @@ class PosteriorSampler(torch.nn.Module):
         self.inv_jitter = inv_jitter
         self.whitened_variational_strategy = whitened_variational_strategy
 
-    def sample_prior(self, x, z, sample_shape: torch.Size = torch.Size([]), normalize=True):
-        Phi_w_x = self.rff_sampler(x, sample_shape=sample_shape, normalize=normalize)
+    def sample_prior(self, x, z, sample_shape: torch.Size = torch.Size([]), normalize=True, resample=True):
+        Phi_w_x = self.rff_sampler(x, sample_shape=sample_shape, normalize=normalize, resample_weights=resample)
         Phi_w_z = self.rff_sampler(z, sample_shape=sample_shape, normalize=normalize, resample_weights=False)
         return Phi_w_x, Phi_w_z
 
-    def sample_variational(self, sample_shape: torch.Size = torch.Size([])) -> torch.Tensor:
-        return self.vi_sampler(sample_shape=sample_shape) # [S, O, M] or [S, M]
+    def sample_variational(self, sample_shape: torch.Size = torch.Size([]), resample: bool = True) -> torch.Tensor:
+        return self.vi_sampler(sample_shape=sample_shape, resample=resample) # [S, O, M] or [S, M]
 
     def compute_posterior_update(self, x, z, u, Phi_w_z, normalize=True, sample_shape: torch.Size = torch.Size([])): 
         k_x_z = self.rff_sampler.covar_module(x, z, normalize=normalize) # [O, N, M] or [N, M]
@@ -32,14 +32,14 @@ class PosteriorSampler(torch.nn.Module):
         delta = delta.unsqueeze(-1) # [S, O, M, 1] or [S, M, 1]
         return gpytorch.solve((K_z_z.add_jitter(self.inv_jitter)), delta, k_x_z).squeeze(-1)
 
-    def forward(self, x, sample_shape: torch.Size = torch.Size([]), normalize=True) -> torch.Tensor:
+    def forward(self, x, sample_shape: torch.Size = torch.Size([]), normalize: bool = True, resample: bool = True) -> torch.Tensor:
         z = self.inducing_points # [M, D]
 
         # Step 1. Get prior samples from RFF
-        Phi_w_x, Phi_w_z = self.sample_prior(x=x, z=z, sample_shape=sample_shape, normalize=normalize) # [S, O, N], [S, O, M] or [S, N], [S, M]
+        Phi_w_x, Phi_w_z = self.sample_prior(x=x, z=z, sample_shape=sample_shape, normalize=normalize, resample=resample) # [S, O, N], [S, O, M] or [S, N], [S, M]
 
         # Step 2. Get prior sample from VI
-        u = self.sample_variational(sample_shape=sample_shape) # [S, O, M] or [S, M]
+        u = self.sample_variational(sample_shape=sample_shape, resample=resample) # [S, O, M] or [S, M]
 
         # Step 3. Update prior 
         update = self.compute_posterior_update(x=x, z=z, u=u, Phi_w_z=Phi_w_z, sample_shape=sample_shape) # [S, O, N] or [S, N]

@@ -28,10 +28,12 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
     pbar = tqdm(range(bo_args.num_iter), desc="BO")
     for iteration in pbar: 
         if (bo_args.switch_to_deep_iter is not None) and (iteration < bo_args.switch_to_deep_iter):
-            print("Switching to exact model")
+            if iteration == 0:
+                print("Switching to exact model")
             model_args.model_name = 'exact'
         elif start_model_name == 'deep':
-            print("Switching to deep model")
+            if iteration == bo_args.switch_to_deep_iter:
+                print("Switching to deep model")
             model_args.model_name = 'deep'
 
         # 1. Create model, mll, and optimizer 
@@ -54,6 +56,11 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
 
         # 5. Get new observation 
         with torch.no_grad():
+            if model_args.model_name == 'deep':
+                # Resample weights once before the optimisation. 
+                # During the optimisation weights are kept constant to 
+                # keep the posterior approximation unchanged.
+                model.resample_weights() 
             new_x, _ = optimize_acqf_manifold(acq_function=acq_function, bo_args=bo_args)
 
         # 6. Observe target function at acquired point and add to previous observations 

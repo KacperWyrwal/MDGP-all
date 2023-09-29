@@ -253,15 +253,17 @@ class ProductOfSines(BenchmarkFunction):
 
 import gpytorch 
 from mdgp.bo_experiment.model import ModelArguments, create_model
-from mdgp.utils import sphere_uniform_grid
+from mdgp.utils import sphere_random_uniform
+from pymanopt.manifolds.manifold import Manifold
 
 
 class DGPSample(torch.nn.Module):
-    def __init__(self, manifold, seed=0, num_inducing=60, project_to_tangent='extrinsic'):
+    def __init__(self, manifold: Manifold, seed=0, num_inducing=60, project_to_tangent='extrinsic'):
         super().__init__()
         self.seed = seed 
-        model_args = ModelArguments(project_to_tangent=project_to_tangent)
-        inducing_points = sphere_uniform_grid(num_inducing)
+        model_args = ModelArguments(project_to_tangent=project_to_tangent, space_dim=int(manifold.dim), num_eigenfunctions=10)
+
+        inducing_points = sphere_random_uniform(num_inducing, manifold.dim + 1)
         self.model = create_model(model_args, inducing_points).base_model
 
 

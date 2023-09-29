@@ -58,7 +58,7 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
 
         # 6. Observe target function at acquired point and add to previous observations 
         new_x = new_x.unsqueeze(-2)
-        new_y = target_function(new_x).squeeze(0)
+        new_y = target_function(new_x).view(1, )
 
         x = torch.cat([x, new_x])
         y = torch.cat([y, new_y])

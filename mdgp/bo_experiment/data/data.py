@@ -2,7 +2,7 @@ from pymanopt.manifolds.manifold import Manifold
 
 
 import torch 
-from mdgp.bo_experiment.data.target_functions import Ackley, Levy, StyblinskiTang, ProductOfSines, DGPSample
+from mdgp.bo_experiment.data.target_functions import Ackley, Levy, StyblinskiTang, ProductOfSines, DGPSample, PermutedSphericalHarmonic
 from mdgp.bo_experiment.utils import manifold_class_from_name, ExcludeFromNameMixin
 from mdgp.utils import sphere_uniform_grid
 from dataclasses import dataclass, field
@@ -19,6 +19,8 @@ def target_function_class_from_name(name):
         return ProductOfSines
     if name == 'dgp_sample': 
         return DGPSample
+    if name == 'perm_sph_harm':
+        return PermutedSphericalHarmonic
     raise ValueError(f"Unknown target function {name}")
 
 

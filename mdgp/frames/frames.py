@@ -94,23 +94,23 @@ class HypersphereFrame(Frame):
         return torch.stack([e_1, e_2], dim=-1) # [N, 3], [N, 3] -> [N, 3, 2]
 
 
-class HypersphereFrame(Frame):
-    def __init__(self, dim, get_normal_vector: list[int]): 
-        assert dim == 2, f"Only Hypersphere of dimension 2 supported. Got dim={dim}"
-        super().__init__()
-        if isinstance(get_normal_vector, list):
-            self.get_coeff = NN(get_normal_vector)
-        else:
-            self.get_coeff = get_normal_vector
+# class HypersphereFrame(Frame):
+#     def __init__(self, dim, get_normal_vector: list[int]): 
+#         assert dim == 2, f"Only Hypersphere of dimension 2 supported. Got dim={dim}"
+#         super().__init__()
+#         if isinstance(get_normal_vector, list):
+#             self.get_coeff = NN(get_normal_vector)
+#         else:
+#             self.get_coeff = get_normal_vector
     
-    def frame(self, x): 
-        frame = canonical_frame(x)
-        # Rotate frame 
-        rotation_angle = self.get_coeff(x)
-        cos_angle, sin_angle = torch.cos(rotation_angle), torch.sin(rotation_angle)
-        e1_coeff = torch.cat([cos_angle, sin_angle], dim=-1)
-        e2_coeff = torch.cat([-sin_angle, cos_angle], dim=-1)
-        e1 = torch.einsum('...ij, ...j -> ...i', frame, e1_coeff)
-        e2 = torch.einsum('...ij, ...j -> ...i', frame, e2_coeff)
-        return torch.stack([e1, e2], dim=-1)
+#     def frame(self, x): 
+#         frame = canonical_frame(x)
+#         # Rotate frame 
+#         rotation_angle = self.get_coeff(x)
+#         cos_angle, sin_angle = torch.cos(rotation_angle), torch.sin(rotation_angle)
+#         e1_coeff = torch.cat([cos_angle, sin_angle], dim=-1)
+#         e2_coeff = torch.cat([-sin_angle, cos_angle], dim=-1)
+#         e1 = torch.einsum('...ij, ...j -> ...i', frame, e1_coeff)
+#         e2 = torch.einsum('...ij, ...j -> ...i', frame, e2_coeff)
+#         return torch.stack([e1, e2], dim=-1)
     

@@ -4,10 +4,13 @@ Authors: Noemie Jaquier and Leonel Rozo, 2021
 License: MIT
 Contact: noemie.jaquier@kit.edu, leonel.rozo@de.bosch.com
 """
+from torch import Tensor 
 from abc import ABC, abstractmethod
 from typing import Any
 import numpy as np
 import torch
+from mdgp.utils import spherical_antiharmonic, spherical_distance
+
 
 from pymanopt.manifolds import *
 
@@ -267,11 +270,19 @@ class DGPSample(torch.nn.Module):
         self.model = create_model(model_args, inducing_points).base_model
 
 
-    def forward(self, x): 
+    def forward(self, x: Tensor) -> Tensor: 
         with torch.no_grad(), gpytorch.settings.num_likelihood_samples(1):
             initial_seed = torch.initial_seed()
             torch.manual_seed(self.seed)
             out = self.model(x, sample_hidden='pathwise', sample_output='pathwise', resample_weights=False)[0, ..., 0]
             torch.manual_seed(initial_seed)
         return out
+    
+class PermutedSphericalHarmonic:
+    def __init__(self, manifold, degree: int = 2, order: int = 3): 
+        self.degree = degree 
+        self.order = order 
+
+    def __call__(self, x: Tensor) -> Tensor: 
+        return spherical_antiharmonic(x, 2, 3) * (x[..., 2] + 1) * (1 - spherical_distance(x, torch.tensor([[0., 0., 1.]])))
     

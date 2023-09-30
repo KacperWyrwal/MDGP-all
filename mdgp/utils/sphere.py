@@ -70,3 +70,23 @@ def rotation_matrix(roll=0.0, pitch=0.0, yaw=0.0) -> Tensor:
 
 def rotate(x: Tensor, roll=0.0, pitch=0.0, yaw=0.0) -> Tensor: 
     return torch.einsum('nm, ...m -> ...n', rotation_matrix(roll=roll, pitch=pitch, yaw=yaw), x)
+
+
+def spherical_distance(a: Tensor, b: Tensor) -> Tensor:
+    """
+    Computes the spherical distance between two points on a unit sphere given their Cartesian coordinates.
+
+    :param a: PyTorch tensor, shape [..., 3]
+    :param b: PyTorch tensor, shape [..., 3]
+    :return: spherical distance between points in a and b, shape [...]
+    """
+    # Calculate the dot product along the last dimension
+    dot_product = torch.einsum('...m, ...m -> ...', a, b)
+
+    # Ensure the dot_product values are in the range [-1, 1] to avoid numerical issues
+    dot_product = torch.clamp(dot_product, -1, 1)
+
+    # Calculate the angle between the vectors
+    angle = torch.acos(dot_product)
+
+    return angle

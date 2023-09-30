@@ -59,7 +59,8 @@ class ManifoldGenCandidates:
         self.bo_args = bo_args
 
     def __call__(self, initial_conditions: Tensor, acquisition_function): 
-        initial_conditions = initial_conditions.detach().numpy() 
+        # FIXME actually it seems like we don't need to covert to numpy here
+        # initial_conditions = initial_conditions.detach().numpy()  
         return gen_candidates_manifold(
             initial_conditions=initial_conditions, 
             acquisition_function=acquisition_function, 

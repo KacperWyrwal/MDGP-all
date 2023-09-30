@@ -1,0 +1,46 @@
+{
+    "model_arguments": {
+        "space_name": "hypersphere",
+        "space_dim": 2,
+        "model_name": "exact",
+        "num_hidden": 1,
+        "num_eigenfunctions": 20,
+        "learn_inducing_locations": false,
+        "optimize_nu": false,
+        "nu": 2.5,
+        "tangent_to_manifold": "exp",
+        "project_to_tangent": "intrinsic",
+        "parametrised_frame": false,
+        "rotated_frame": false,
+        "outputscale_mean": 0.01,
+        "acqf_name": "expected_improvement",
+        "acqf_maximize": false,
+        "posterior_sample_method": "pathwise"
+    },
+    "data_arguments": {
+        "target_function_name": "perm_sph_harm",
+        "num_initial_data": 5,
+        "initial_data_method": "random",
+        "manifold_name": "hypersphere",
+        "manifold_dim": 2
+    },
+    "fit_arguments": {
+        "num_steps": 500,
+        "sample_hidden": "naive",
+        "lr": 0.01
+    },
+    "bo_arguments": {
+        "manifold_name": "sphere",
+        "manifold_dim": 2,
+        "num_iter": 200,
+        "num_restarts": 5,
+        "raw_samples": 100,
+        "q": 1,
+        "optimizer_name": "steepest_descent",
+        "optimizer_max_iterations": 100,
+        "optimizer_verbosity": 0, 
+        "switch_to_deep_iter": null
+    },
+    "runs": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    "status": "ready"
+}

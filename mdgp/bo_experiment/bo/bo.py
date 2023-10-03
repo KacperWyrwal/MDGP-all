@@ -24,6 +24,8 @@ class BOArguments(ExcludeFromNameMixin):
     optimizer_max_iterations: int = field(default=100, metadata={"help": "Maximum number of iterations for the optimizer"})
     optimizer_verbosity: int = field(default=0, metadata={"help": "Verbosity of the optimizer"})
     switch_to_deep_iter: int | None = field(default=None, metadata={"help": "Switch to deep model after this iteration"})
+    kmeans_inducing: bool = field(default=False, metadata={"help": "Whether to use kmeans to initialize the inducing points"})
+    kmeans_inducing_num: int = field(default=60, metadata={"help": "Number of inducing points to use if kmeans is used"})
 
     def __post_init__(self):
         super().__post_init__()

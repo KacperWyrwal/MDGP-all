@@ -14,6 +14,7 @@ from mdgp.experiment_utils import log, finalize
 from tqdm.autonotebook import tqdm 
 from botorch.fit import fit_gpytorch_mll
 from argparse import ArgumentParser
+from mdgp.utils import sphere_kmeans_centers
 
 
 def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: ModelArguments, fit_args: FitArguments, loggers=None, show_fit_progress=False):
@@ -38,7 +39,11 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
             model_args.model_name = 'deep'
 
         # 1. Create model, mll, and optimizer 
-        model = create_model(model_args=model_args, train_x=x, train_y=y, inducing_points=x)
+        inducing_points = x
+        if bo_args.kmeans_inducing: 
+            inducing_points = sphere_kmeans_centers(x=x, k=bo_args.kmeans_inducing_num)
+
+        model = create_model(model_args=model_args, train_x=x, train_y=y, inducing_points=inducing_points)
         optimizer = model_args.optimizer_factory(model=model.base_model, lr=fit_args.lr)
         mll = model_args.mll_factory(model.base_model, y=y)
 

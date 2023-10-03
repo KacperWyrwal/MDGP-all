@@ -39,9 +39,10 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
             model_args.model_name = 'deep'
 
         # 1. Create model, mll, and optimizer 
-        inducing_points = x
-        if bo_args.kmeans_inducing: 
+        if bo_args.kmeans_inducing and x.shape[-1] > bo_args.kmeans_inducing_num: 
             inducing_points = sphere_kmeans_centers(x=x, k=bo_args.kmeans_inducing_num)
+        else:
+            inducing_points = x
 
         model = create_model(model_args=model_args, train_x=x, train_y=y, inducing_points=inducing_points)
         optimizer = model_args.optimizer_factory(model=model.base_model, lr=fit_args.lr)

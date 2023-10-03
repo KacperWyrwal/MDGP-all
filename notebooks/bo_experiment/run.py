@@ -1,7 +1,8 @@
 import geometric_kernels.torch
 import os 
 import warnings 
-import torch 
+import torch
+import gpytorch
 from torch import set_default_dtype, float64
 from mdgp.bo_experiment.data import get_initial_data
 from mdgp.bo_experiment.model import create_model
@@ -133,6 +134,7 @@ def crawl_and_run(start_directory, config_file_name='config.json', overwrite=Fal
 
 if __name__ == "__main__":
     set_default_dtype(float64)
+    gpytorch.settings.cholesky_max_tries._set_value(10)
 
     # Parse arguments 
     parser = ArgumentParser(description='Crawl through directories and run experiments based on config files.')

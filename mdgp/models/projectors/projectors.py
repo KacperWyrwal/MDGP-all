@@ -5,11 +5,10 @@ from mdgp.utils import space_to_manifold
 
 
 class ProjectToTangentIntrinsic(torch.nn.Module): 
-    def __init__(self, space: Space, get_normal_vector=None) -> None: 
-        print(f"Got {get_normal_vector=}")
+    def __init__(self, space: Space, get_normal_vector=None, rotated_frame=False) -> None: 
         assert isinstance(space, Hypersphere) and space.dim == 2, f"Only Hypersphere supported. Got space={space}"
         super().__init__()
-        self.frame = HypersphereFrame(dim=space.dim, get_normal_vector=get_normal_vector)
+        self.frame = HypersphereFrame(dim=space.dim, get_normal_vector=get_normal_vector, rotated_frame=rotated_frame)
 
     def forward(self, x, coeff): 
         return self.frame.coeff_to_tangent(x=x, coeff=coeff)

@@ -64,7 +64,6 @@ def get_outputscale_prior(outputscale_mean: float = 1.0, outputscale_std=1.0, pr
 def create_model(model_args: ModelArguments, train_x=None, train_y=None):
     space = Hypersphere(dim=2)
     model_name = model_args.model_name
-    print(f"In create_model got {model_args.parametrised_frame=}")
     outputscale_prior = get_outputscale_prior(outputscale_mean=model_args.outputscale_mean, 
                                               outputscale_std=model_args.outputscale_std, 
                                               prior_class=model_args.prior_class)

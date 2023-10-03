@@ -68,12 +68,15 @@ class NN(nn.Module):
 
 
 class HypersphereFrame(Frame): 
-    def __init__(self, dim: int, get_normal_vector: Optional[Union[str, Callable[[Tensor], Tensor]]] = None) -> None:
+    def __init__(self, dim: int, get_normal_vector: Optional[Union[str, Callable[[Tensor], Tensor]]] = None, rotated_frame=False) -> None:
         assert dim == 2, f"Only Hypersphere of dimension 2 supported. Got dim={dim}"
         super().__init__()
         # override get_normal_vector method if given
         if get_normal_vector is None: 
-            self.get_normal_vector = ExpandAs(torch.tensor([[0., 0., 1.]]))
+            if rotated_frame is True: 
+                self.get_normal_vector = ExpandAs(torch.tensor([[0., 1., 0.]]))
+            else: 
+                self.get_normal_vector = ExpandAs(torch.tensor([[0., 0., 1.]]))
         elif get_normal_vector == 'nn' or isinstance(get_normal_vector, list):
             self.get_normal_vector = NN(get_normal_vector)
         else:

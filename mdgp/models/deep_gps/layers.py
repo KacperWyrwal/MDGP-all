@@ -150,14 +150,15 @@ class EuclideanDeepGPLayer(DeepGPLayer):
 
 
 class ManifoldToManifoldDeepGPLayer(torch.nn.Module): 
-    def __init__(self, gp, space, project_to_tangent: str = 'intrinsic', tangent_to_manifold: str = 'exp', get_normal_vector='nn'): 
+    def __init__(self, gp, space, project_to_tangent: str = 'intrinsic', tangent_to_manifold: str = 'exp', get_normal_vector='nn', 
+                 rotated_frame=False): 
         assert project_to_tangent in {'intrinsic', 'extrinsic'}
         assert tangent_to_manifold in {'exp', 'retr'}
         super().__init__()
         self.gp = gp 
 
         if project_to_tangent == 'intrinsic': 
-            self.project_to_tangent = ProjectToTangentIntrinsic(space=space, get_normal_vector=get_normal_vector)
+            self.project_to_tangent = ProjectToTangentIntrinsic(space=space, get_normal_vector=get_normal_vector, rotated_frame=rotated_frame)
         if project_to_tangent == 'extrinsic': 
             self.project_to_tangent = ProjectToTangentExtrinsic(space=space)
 

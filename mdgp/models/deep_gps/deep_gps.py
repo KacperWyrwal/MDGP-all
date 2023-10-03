@@ -9,6 +9,7 @@ from mdgp.utils import extrinsic_dimension
 class ManifoldDeepGP(gpytorch.models.deep_gps.DeepGP): 
 
     def __init__(self, hidden_gps, output_gp, space, project_to_tangent='instrinsic', tangent_to_manifold='exp', parametrised_frame=False):
+        print(f"In ManifoldDeepGP.__init__ got {parametrised_frame=}")
         if parametrised_frame is True: 
             get_normal_vector = 'nn'
         elif parametrised_frame is False:
@@ -59,7 +60,7 @@ class GeometricManifoldDeepGP(ManifoldDeepGP):
         outputscale_prior=None,
         parametrised_frame=False, 
         ) -> None:
-
+        print("In GeometricManifoldDeepGP.__init__ got parametrised_frame = ", parametrised_frame)
         # Dimension of the manifold is the last dimension of the inducing points
         if project_to_tangent == 'intrinsic': 
             hidden_output_dims = space.dim 

@@ -3,7 +3,7 @@ import os
 from argparse import ArgumentParser
 from torch import set_default_dtype, float64
 from torch.optim import Adam  
-from gpytorch.mlls import DeepApproximateMLL, VariationalELBO
+from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
 from mdgp.experiment_utils.data import get_data 
 from mdgp.experiment_utils.model import create_model
 from mdgp.experiment_utils.logging import CSVLogger, finalize 
@@ -20,10 +20,13 @@ def run_experiment(experiment_config, dir_path):
     train_inputs, train_targets, val_inputs, val_targets, test_inputs, test_targets = get_data(data_args=data_args)
 
     # 2. Create model, criterion, and optimizer 
-    model = create_model(model_args=model_args)
-    elbo = DeepApproximateMLL(
-        VariationalELBO(likelihood=model.likelihood, model=model, num_data=data_args.num_train)
-    )
+    model = create_model(model_args=model_args, train_x=train_inputs, train_y=train_targets)
+    if model_args.model_name == 'exact':
+        mll = ExactMarginalLogLikelihood(likelihood=model.likelihood, model=model)
+    else:
+        mll = DeepApproximateMLL(
+            VariationalELBO(likelihood=model.likelihood, model=model, num_data=data_args.num_train)
+        )
     optimizer = Adam(model.parameters(), maximize=True, lr=0.01) # Maximize because we are working with ELBO not negative ELBO 
     
     # 4. Train and validate model
@@ -32,7 +35,7 @@ def run_experiment(experiment_config, dir_path):
     val_csv_logger = CSVLogger(root_dir=os.path.join(dir_path, 'val')) 
     train_loggers = [train_csv_logger]
     val_loggers = [val_csv_logger]
-    model = fit(model=model, optimizer=optimizer, criterion=elbo, train_loggers=train_loggers, 
+    model = fit(model=model, optimizer=optimizer, criterion=mll, train_loggers=train_loggers, 
                 val_loggers=val_loggers, train_inputs=train_inputs, train_targets=train_targets,
                 val_inputs=val_inputs, val_targets=val_targets, training_args=training_args)
 

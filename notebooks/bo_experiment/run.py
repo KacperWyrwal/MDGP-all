@@ -47,7 +47,9 @@ def run_bo(initial_data, target_function, bo_args: BOArguments, model_args: Mode
         if model_args.model_name == 'exact':
             fit_gpytorch_mll(mll=mll)
         elif model_args.model_name == 'deep':
-            fit(model=model, optimizer=optimizer, criterion=mll, train_inputs=x, train_targets=y, fit_args=fit_args, show_progress=show_fit_progress)
+            num_steps = fit_args.num_steps if iteration % fit_args.full_every_n_steps == 0 else fit_args.partial_num_steps
+            fit(model=model, optimizer=optimizer, criterion=mll, train_inputs=x, train_targets=y, fit_args=fit_args, 
+                show_progress=show_fit_progress, num_steps=num_steps)
         else:
             raise ValueError(f"Unknown model name: {model_args.model_name}")
 

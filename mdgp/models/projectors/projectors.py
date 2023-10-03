@@ -6,6 +6,7 @@ from mdgp.utils import space_to_manifold
 
 class ProjectToTangentIntrinsic(torch.nn.Module): 
     def __init__(self, space: Space, get_normal_vector=None) -> None: 
+        print(f"Got {get_normal_vector=}")
         assert isinstance(space, Hypersphere) and space.dim == 2, f"Only Hypersphere supported. Got space={space}"
         super().__init__()
         self.frame = HypersphereFrame(dim=space.dim, get_normal_vector=get_normal_vector)

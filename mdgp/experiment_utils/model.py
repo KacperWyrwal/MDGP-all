@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from mdgp.utils import sphere_uniform_grid
 from mdgp.models.deep_gps import GeometricManifoldDeepGP, EuclideanManifoldDeepGP, EuclideanDeepGP
 from geometric_kernels.spaces import Hypersphere
-from gpytorch.priors import GammaPrior
+from gpytorch.priors import GammaPrior, NormalPrior
 
 
 @dataclass
@@ -30,6 +30,8 @@ class ModelArguments:
         'help': 'Inducing points. If None, then they are generated automatically.',
         'exclude_from_asdict': True, 
     })
+    outputscale_std: float = field(default=1.0, metadata={'help': 'Standard deviation of the outputscale'})
+    prior_class: str = field(default='gamma', metadata={'help': 'Prior class for the outputscale. Must be one of ["gamma", "normal"]'})
 
     def __post_init__(self):
         if self.inducing_points is None: 
@@ -52,14 +54,20 @@ def get_inducing_points(num_inducing: int, space: Space) -> Tensor:
     raise ValueError(f"Unknown space: {space}. Must be one of [Hypersphere(dim=2)].")
 
 
-def get_outputscale_prior(outputscale_mean: float = 1.0):
-    return GammaPrior(concentration=1.0, rate=1 / outputscale_mean) 
+def get_outputscale_prior(outputscale_mean: float = 1.0, outputscale_std=1.0, prior_class='gamma'):
+    if prior_class == 'gamma':
+        return GammaPrior(concentration=1.0, rate=1 / outputscale_mean)
+    if prior_class == 'normal':
+        return NormalPrior(loc=outputscale_mean, scale=outputscale_std)
 
 
-def create_model(model_args: ModelArguments):
+def create_model(model_args: ModelArguments, train_x=None, train_y=None):
     space = Hypersphere(dim=2)
     model_name = model_args.model_name
-    outputscale_prior = get_outputscale_prior(outputscale_mean=model_args.outputscale_mean)
+    print(f"In create_model got {model_args.parametrised_frame=}")
+    outputscale_prior = get_outputscale_prior(outputscale_mean=model_args.outputscale_mean, 
+                                              outputscale_std=model_args.outputscale_std, 
+                                              prior_class=model_args.prior_class)
     if model_name == 'geometric_manifold':
         return GeometricManifoldDeepGP(
             space=space, 
@@ -72,6 +80,7 @@ def create_model(model_args: ModelArguments):
             nu=model_args.nu,
             project_to_tangent=model_args.project_to_tangent, 
             tangent_to_manifold=model_args.tangent_to_manifold,
+            parametrised_frame=model_args.parametrised_frame,
         )
     if model_name == 'euclidean_manifold': 
         return EuclideanManifoldDeepGP(
@@ -91,5 +100,17 @@ def create_model(model_args: ModelArguments):
             num_hidden=model_args.num_hidden, 
             nu=model_args.nu, 
             learn_inducing_locations=model_args.learn_inducing_locations, 
+        )
+    if model_name == 'exact': 
+        from mdgp.models.exact_gps import GeometricManifoldExactGP
+        return GeometricManifoldExactGP(
+            train_x=train_x, 
+            train_y=train_y,
+            space=space,
+            nu=model_args.nu,
+            trainable_nu=model_args.optimize_nu,
+            num_eigenfunctions=model_args.num_eigenfunctions,
+            normalize=True, 
+            matern_gabo=False, 
         )
     raise ValueError(f"Unknown model name: {model_name}. Must be one of ['geometric_manifold', 'euclidean_manifold', 'euclidean']")

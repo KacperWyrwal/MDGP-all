@@ -51,9 +51,10 @@ class CartesianToSpherical(nn.Module):
 
 
 class NN(nn.Module):
-    def __init__(self, hidden_layers: list[int], in_dim=2, out_dim=1): 
+    def __init__(self, hidden_layers: list[int], in_dim=3, out_dim=3): 
         super().__init__()
         layers = [CartesianToSpherical()]
+        layers = []
         prev_input_dims = in_dim
         for input_dims in hidden_layers: 
             layers.append(nn.Linear(prev_input_dims, input_dims))

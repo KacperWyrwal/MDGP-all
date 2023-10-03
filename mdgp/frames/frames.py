@@ -77,7 +77,9 @@ class HypersphereFrame(Frame):
                 self.get_normal_vector = ExpandAs(torch.tensor([[0., 1., 0.]]))
             else: 
                 self.get_normal_vector = ExpandAs(torch.tensor([[0., 0., 1.]]))
-        elif get_normal_vector == 'nn' or isinstance(get_normal_vector, list):
+        elif get_normal_vector == 'nn':
+            self.get_normal_vector = NN([])
+        elif isinstance(get_normal_vector, list):
             self.get_normal_vector = NN(get_normal_vector)
         else:
             raise NotImplementedError(f"Expected get_normal_vector either None, 'nn', or list of ints. Got {get_normal_vector}.")

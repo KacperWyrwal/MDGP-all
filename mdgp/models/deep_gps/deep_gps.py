@@ -26,14 +26,15 @@ class ManifoldDeepGP(gpytorch.models.deep_gps.DeepGP):
         self.output_layer = output_gp
         self.likelihood = gpytorch.likelihoods.GaussianLikelihood()
 
-    def forward_return_hidden(self, x: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False):
+    def forward_return_hidden(self, x: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False, 
+                              resample_weights=True):
         hidden_factors = []
         for hidden_layer in self.hidden_layers: 
-            hidden_dict = hidden_layer(x=x, are_samples=are_samples, sample=sample_hidden, mean=mean, return_hidden=True)
+            hidden_dict = hidden_layer(x=x, are_samples=are_samples, sample=sample_hidden, mean=mean, return_hidden=True, resample_weights=resample_weights)
             hidden_factors.append(hidden_dict)
             x = hidden_dict['manifold']
             are_samples = False if mean else True 
-        y = self.output_layer(x, are_samples=are_samples, sample=sample_output, mean=mean)
+        y = self.output_layer(x, are_samples=are_samples, sample=sample_output, mean=mean, resample_weights=resample_weights)
         return hidden_factors, y 
 
     def forward(self, x: Tensor, are_samples: bool = False, sample_hidden: str = 'naive', sample_output=False, mean=False, resample_weights: bool = True):

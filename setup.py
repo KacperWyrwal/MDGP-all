@@ -4,15 +4,15 @@
 from setuptools import find_packages, setup
 
 requirements = [
-    "torch", 
-    "gpytorch",
-    "pymanopt",
-    "botorch",
-    "geoopt",
-    "lightning",
-    "plotly",
-    "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
-    "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
+    # "torch", 
+    # "gpytorch",
+    # "pymanopt",
+    # "botorch",
+    # "geoopt",
+    # "lightning",
+    # "plotly",
+    # "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
+    # "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
 ]
 
 setup(

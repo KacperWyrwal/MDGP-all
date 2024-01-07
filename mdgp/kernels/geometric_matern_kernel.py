@@ -3,7 +3,7 @@ from geometric_kernels.kernels.geometric_kernels import MaternKarhunenLoeveKerne
 
 
 class GeometricMaternKernel(GPytorchGeometricKernel): 
-    def __init__(self, space, lengthscale=1.0, nu=2.5, trainable_nu=True, num_eigenfunctions=20, normalize=True, **kwargs): 
+    def __init__(self, space, lengthscale=1.0, nu=2.5, trainable_nu=True, num_eigenfunctions=35, normalize=True, **kwargs): 
         geometric_kernel = MaternKarhunenLoeveKernel(
             space=space, 
             num_eigenfunctions=num_eigenfunctions, 

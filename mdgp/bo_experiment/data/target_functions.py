@@ -278,6 +278,7 @@ class DGPSample(torch.nn.Module):
             torch.manual_seed(initial_seed)
         return out
     
+    
 class PermutedSphericalHarmonic:
     def __init__(self, manifold, degree: int = 2, order: int = 3): 
         self.degree = degree 

@@ -1,63 +1,74 @@
 import torch 
 import gpytorch 
 import math 
-import lab as B 
-from geometric_kernels.kernels.feature_maps import deterministic_feature_map_compact
-from geometric_kernels.spaces import DiscreteSpectrumSpace
+from geometric_kernels.types import FeatureMap
+from mdgp.kernels import GeometricMaternKernel
+from geometric_kernels.spaces import Space 
 
 
 class RFFSampler(torch.nn.Module):
 
-    def __init__(self, covar_module, mean_module, feature_map='deterministic') -> None: 
+    def __init__(self, covar_module, mean_module, feature_map: FeatureMap) -> None: 
         super().__init__()
 
         # Is covar_module as ScaleKernel? 
         assert isinstance(covar_module, gpytorch.kernels.ScaleKernel), "RFFSampler only implemented for ScaleKernel."
-        self.covar_module = covar_module
-        self.base_kernel = covar_module.base_kernel
-        self.geometric_kernel = self.base_kernel.geometric_kernel
-        self.space = self.geometric_kernel.space
 
-        # Pick feature map to make sampler 
-        assert feature_map == 'deterministic', "Only deterministic feature map implemented."
-        assert isinstance(self.space, DiscreteSpectrumSpace), "Deterministic feature map only implemented for DiscreteSpectrumSpace."
-        self.feature_map = deterministic_feature_map_compact(space=self.space, kernel=self.geometric_kernel)        
+        self.covar_module = covar_module
+        self.base_kernel: GeometricMaternKernel = covar_module.base_kernel
+        self.feature_map = feature_map
         self.mean_module = mean_module
+
         self._weights = None
-        self._num_features = sum(self.geometric_kernel.eigenfunctions.dim_of_eigenspaces)
+        # Dynamically learn the number of features returned by the feature map 
+        # FIXME This is a hack. Would be better if the feature map was a class with this property.
+        self._num_features = self.compute_features(torch.tensor(self.base_kernel.space.random_point()[None])).shape[-1]
 
     @property
     def num_features(self): 
         return self._num_features
 
-    # TODO: Change the weights shape to go by the broadcasted batch shapes of the inputs and the kernel
     def weights(self, num_samples, inputs=None, resample=True) -> torch.Tensor:
-        broadcasted_batch_shape = torch.broadcast_shapes(self.covar_module.batch_shape, inputs.shape[:-2]) if inputs is not None else self.covar_module.batch_shape
+        # Broadcast the batch shapes of the inputs and the kernel if possible. 
+        if inputs is not None: 
+            batch_shape = torch.broadcast_shapes(self.covar_module.batch_shape, inputs.shape[:-2])
+        else: 
+            batch_shape = self.covar_module.batch_shape
+
+        # Randomly initialise the weights or resample them. 
         if resample or self._weights is None: 
-            self._weights = torch.randn(*broadcasted_batch_shape, self.num_features, num_samples) # [M, O]
+            self._weights = torch.randn(*batch_shape, self.num_features, num_samples) # [M, O]
         else: 
             assert self._weights.shape[-1] == num_samples, f"Sample shape mismatch. Resample or use sample_shape with product {self._weights.shape[-1]}."
         return self._weights
 
-    def compute_features(self, inputs, normalize=True):
-        params = self.base_kernel.geometric_kernel_params
-        key = B.global_random_state(B.dtype(inputs)) # TODO Change to only pytorch 
-        features = self.feature_map(inputs, params, key=key, normalize=normalize)[0]
+    def compute_features(self, inputs):
+        _, features = self.feature_map(
+            inputs, 
+            params=self.base_kernel.geometric_kernel_params, 
+            key=self.base_kernel.key, 
+            normalize=True
+        )
         return features * self.base_kernel.batch_shape_scaling_factor.sqrt()
 
-    def sample(self, inputs, weights, sample_shape: torch.Size = torch.Size([]), normalize=True): 
+    def sample(self, inputs, weights): 
         """
         :param inputs: [..., D]
         """
-        features = self.compute_features(inputs=inputs, normalize=normalize) # [..., batch_shape, N, num_eigenfunctions]
+        features = self.compute_features(inputs=inputs) # [..., batch_shape, N, num_eigenfunctions]
         res = torch.einsum('...ne, ...es -> s...n', features, weights)
-        res = self.covar_module.outputscale.sqrt().unsqueeze(-1) * res 
-        res = res + self.mean_module(inputs)
-        return res.view(*sample_shape, *res.shape[1:])
+        return self.covar_module.outputscale.sqrt().unsqueeze(-1) * res + self.mean_module(inputs)
     
-    def forward(self, inputs: torch.Tensor, sample_shape: torch.Size = torch.Size([]), resample_weights=True, normalize=True) -> torch.Tensor: 
+    def forward(self, inputs: torch.Tensor, sample_shape: torch.Size = torch.Size([]), resample=True) -> torch.Tensor: 
         """
-        :return: A sample from the model. [S, O, N]
+        :return: A sample from the model. [*S, O, N]
         """ 
-        weights = self.weights(num_samples=math.prod(sample_shape), inputs=inputs, resample=resample_weights)
-        return self.sample(inputs=inputs, weights=weights, sample_shape=sample_shape, normalize=normalize)
+        # flatten sample shape
+        weights = self.weights(num_samples=math.prod(sample_shape), inputs=inputs, resample=resample)
+
+        # Sample with flattened sample shape 
+        sample = self.sample(inputs=inputs, weights=weights)
+
+        # Reshape sample to desired shape
+        return sample.view(*sample_shape, *sample.shape[1:])
+    

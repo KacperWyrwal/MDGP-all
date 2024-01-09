@@ -1,4 +1,7 @@
 from mdgp.models.deep_gps import (
-    GeometricManifoldDeepGP, EuclideanManifoldDeepGP, EuclideanDeepGP
+    ResidualEuclideanDeepGP,
+    ResidualGeometricDeepGP,
+    GeometricHeadDeepGP, 
+    EuclideanDeepGP,
 )
-from mdgp.models.exact_gps import GeometricManifoldExactGP
+from mdgp.models.exact_gps import GeometricExactGP

@@ -1,0 +1,31 @@
+{
+    "model_arguments": {
+        "space_name": "hypersphere",
+        "space_dim": 2,
+        "model_name": "residual_geometric",
+        "num_hidden": 2,
+        "num_inducing": 60,
+        "num_eigenfunctions": 20,
+        "learn_inducing_locations": false,
+        "optimize_nu": true,
+        "nu": 2.5,
+        "to_tangent": "project",
+        "outputscale_mean": 0.01,
+        "prior_class": "gamma",
+        "hidden_output_dims": 3
+    },
+    "data_arguments": {
+        "target_name": "smooth",
+        "num_train": 400,
+        "num_val": 500,
+        "num_test": 2000,
+        "noise_std": 0.01
+    },
+    "training_arguments": {
+        "num_steps": 1000,
+        "val_every_n_steps": 50,
+        "sample_hidden": "elementwise"
+    },
+    "run": 0,
+    "status": "ready"
+}

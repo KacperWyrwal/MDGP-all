@@ -1,7 +1,3 @@
-# Type hints
-from torch import Tensor
-from geometric_kernels.spaces import Space
-
 # Imports 
 from dataclasses import dataclass, field
 from mdgp.models import *
@@ -27,6 +23,12 @@ class ModelArguments:
     prior_class: str = field(default='gamma', metadata={'help': 'Prior class for the outputscale. Must be one of ["gamma", "normal"]'})
     hidden_output_dims: int | None = field(default=None, metadata={'help': 'Number of dimensions of the hidden output'})
     output_dims: int | None = field(default=None, metadata={'help': 'Number of dimensions of the output'})
+    tangent_to_manifold: str | None = field(default=None, metadata={'help': 'This is kept for backwards compatibility. Should be None'})
+    project_to_tangent: str | None = field(default=None, metadata={'help': 'This is kept for backwards compatibility. Should be None'})
+    parametrised_frame: str | None = field(default=None, metadata={'help': 'This is kept for backwards compatibility. Should be None'})
+    rotated_frame: str | None = field(default=None, metadata={'help': 'This is kept for backwards compatibility. Should be None'})
+
+
 
     def dict_factory(self, x):
         return {k: v for k, v in x 

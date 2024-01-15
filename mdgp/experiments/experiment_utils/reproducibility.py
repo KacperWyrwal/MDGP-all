@@ -237,7 +237,8 @@ class ExperimentConfigReader:
         self.experiment_config = ExperimentConfig.from_json(self.file_path)
         if (self.experiment_config.status == ExperimentStatus.READY or 
             self.experiment_config.status == ExperimentStatus.FAILED or 
-            (self.experiment_config.status == ExperimentStatus.COMPLETED and self.overwrite)):
+            (self.experiment_config.status == ExperimentStatus.COMPLETED and self.overwrite) or
+            (self.experiment_config.status == ExperimentStatus.RUNNING and self.overwrite)):
             self._update_status(ExperimentStatus.RUNNING)
             self.experiment_config.can_run = True 
         return self.experiment_config

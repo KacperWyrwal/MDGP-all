@@ -4,7 +4,6 @@ from geometric_kernels.spaces import Space
 
 # Imports 
 from dataclasses import dataclass, field
-from mdgp.utils import sphere_uniform_grid
 from mdgp.models import *
 from geometric_kernels.spaces import Hypersphere
 from gpytorch.priors import GammaPrior, NormalPrior

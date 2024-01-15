@@ -172,9 +172,12 @@ def create_experiment_config_from_json(json_config, dir_path, overwrite=False) -
     training_args_list = expand_args(json_config['training_arguments'])
     runs = json_config['runs']
 
+    dir_path = os.path.abspath(dir_path)
+
     # Get all combinations of arguments
     for model_args, data_args, training_args in product(model_args_list, data_args_list, training_args_list):
         for run in runs:
+            print(f"Creating experiment config file for run {run}")
             config = ExperimentConfig(
                 model_arguments=ModelArguments(**model_args),
                 data_arguments=DataArguments(**data_args),
@@ -184,15 +187,20 @@ def create_experiment_config_from_json(json_config, dir_path, overwrite=False) -
 
             # Create experiment directory if it doesn't exist
             experiment_path = os.path.join(dir_path, config.experiment_name)
-            os.makedirs(experiment_path, exist_ok=True)
+            if not os.path.exists(experiment_path):
+                print(f'Creating experiment directory: {experiment_path}')
+                os.makedirs(experiment_path, exist_ok=True)
 
             # Create run directory if doesn't exist 
             run_path = os.path.join(experiment_path, config.run_name)
-            os.makedirs(run_path, exist_ok=True)
+            if not os.path.exists(run_path):
+                print(f'Creating run directory: {run_path}')
+                os.makedirs(run_path, exist_ok=True)
 
             # Maybe skip if config file already exists
             config_path = os.path.join(run_path, config.file_name)
             if os.path.exists(config_path) and not overwrite: 
+                print(f'Config file already exists: {config_path}')
                 continue 
             
             # Save config file 
@@ -207,10 +215,13 @@ def create_experiment_config(json_config_path, dir_path, overwrite=False) -> Non
     - dir_path (str): The path to the parent directory where the experiment folders will be created.
     - json_config_path (str): The path to the JSON file containing the experiment configurations.
     """
+    print("Creating experiment config files...")
 
     # Read the JSON file
     with open(json_config_path, 'r') as f:
         json_config = json.load(f)
+
+    print("Successfully read JSON file")
     
     create_experiment_config_from_json(json_config, dir_path, overwrite=overwrite)
 

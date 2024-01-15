@@ -2,23 +2,23 @@
     "model_arguments": {
         "space_name": "hypersphere",
         "space_dim": 2,
-        "model_name": "geometric_head",
-        "num_hidden": [0, 1, 2, 3, 4],
-        "num_inducing": 60,
+        "model_name": "residual_geometric",
+        "num_hidden": 0,
+        "num_inducing": 300,
         "num_eigenfunctions": 20,
         "learn_inducing_locations": false,
         "optimize_nu": true,
-        "nu": [0.5, 1.5, 2.5, 3.5],
+        "nu": 2.5,
         "to_tangent": "project",
-        "outputscale_mean": 1.0,
-        "outputscale_std": 1.0,
-        "prior_class": "gamma"
+        "outputscale_mean": 0.01,
+        "prior_class": "gamma",
+        "hidden_output_dims": 3
     },
     "data_arguments": {
-        "target_name": "smooth",
+        "target_name": "singular",
         "num_train": 400,
         "num_val": 500,
-        "num_test": 2000,
+        "num_test": 1000,
         "noise_std": 0.01
     },
     "training_arguments": {

@@ -1,0 +1,8 @@
+git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel
+git+https://github.com/KacperWyrwal/SphericalHarmonics-MDGP.git
+git+https://github.com/KacperWyrwal/cclust_package-MDGP.git
+torch 
+gpytorch 
+backends>=1.5.4
+tqdm
+lightning

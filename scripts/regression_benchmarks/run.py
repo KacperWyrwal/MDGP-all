@@ -4,11 +4,11 @@ from argparse import ArgumentParser
 from torch import set_default_dtype, float64
 from torch.optim import Adam  
 from gpytorch.mlls import DeepApproximateMLL, VariationalELBO, ExactMarginalLogLikelihood
-from mdgp.experiment_utils.data import get_data 
-from mdgp.experiment_utils.model import create_model
-from mdgp.experiment_utils.logging import CSVLogger, finalize 
-from mdgp.experiment_utils.training import fit, test_step
-from mdgp.experiment_utils import ExperimentConfigReader, set_experiment_seed, ExperimentStatus
+from mdgp.experiments.experiment_utils.data import get_data 
+from mdgp.experiments.experiment_utils.model import create_model
+from mdgp.experiments.experiment_utils.logging import CSVLogger, finalize 
+from mdgp.experiments.experiment_utils.training import fit, test_step
+from mdgp.experiments.experiment_utils import ExperimentConfigReader, set_experiment_seed
 
 
 def run_experiment(experiment_config, dir_path):

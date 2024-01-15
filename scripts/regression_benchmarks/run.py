@@ -79,7 +79,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description='Crawl through directories and run experiments based on config files.')
     parser.add_argument('dir_path', type=str, help='The parent directory to start crawling from.')
     parser.add_argument('--config_name', type=str, default='config.json', help='The name of the config file to match. Default is "config.json".')
-    parser.add_argument('--overwrite', type=bool, default=False, help='Whether to overwrite existing experiments. Default is False.')
+    parser.add_argument('--overwrite', action='store_true', help='Whether to overwrite existing experiments. Default is False.')
     args = parser.parse_args()
     
     crawl_and_run(start_directory=args.dir_path, config_file_name=args.config_name, overwrite=args.overwrite)

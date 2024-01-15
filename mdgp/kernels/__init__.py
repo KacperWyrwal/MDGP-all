@@ -1,2 +1,1 @@
-from mdgp.kernels.feature_map_kernel import FeatureMapKernel
 from mdgp.kernels.matern_kernel import GeometricMaternKernel

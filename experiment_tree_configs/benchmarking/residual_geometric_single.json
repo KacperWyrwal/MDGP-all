@@ -15,10 +15,10 @@
         "hidden_output_dims": 3
     },
     "data_arguments": {
-        "target_name": "smooth",
+        "target_name": "singular",
         "num_train": 400,
         "num_val": 500,
-        "num_test": 2000,
+        "num_test": 1000,
         "noise_std": 0.01
     },
     "training_arguments": {

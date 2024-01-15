@@ -13,7 +13,8 @@
         "outputscale_mean": 1.0,
         "outputscale_std": 1.0,
         "prior_class": "gamma",
-        "hidden_output_dims": 3
+        "hidden_output_dims": null,
+        "output_dims": null
     },
     "data_arguments": {
         "target_name": "smooth",

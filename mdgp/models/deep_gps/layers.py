@@ -86,7 +86,7 @@ class GeometricDeepGPLayer(DeepGPLayer):
         nu: float = 2.5, 
         optimize_nu: bool = False,
         learn_inducing_locations: bool = False,
-        whitened_variational_strategy=False, 
+        whitened_variational_strategy: bool = True, 
         sampler_inv_jitter=10e-8,
         outputscale_prior=None,
         mean: str = 'zero', 
@@ -143,7 +143,7 @@ class GeometricDeepGPLayer(DeepGPLayer):
         return sample.mT
 
 
-class EuclideanDeepGPLayer(DeepGPLayer):
+class EuclideanDeepGPLayer(GeometricDeepGPLayer):
     def __init__(
         self, 
         inducing_points: torch.Tensor,
@@ -153,7 +153,7 @@ class EuclideanDeepGPLayer(DeepGPLayer):
         nu: float = 2.5, 
         optimize_nu: bool = False,
         learn_inducing_locations: bool = False,
-        whitened_variational_strategy=False, 
+        whitened_variational_strategy: bool = True, 
         sampler_inv_jitter=10e-8,
         outputscale_prior=None,
         mean: str = 'zero', 
@@ -163,7 +163,7 @@ class EuclideanDeepGPLayer(DeepGPLayer):
         dim = inducing_points.size(-1)
         space = Euclidean(dim)
 
-        return super().__init__(
+        super().__init__(
             space=space, 
             inducing_points=inducing_points, 
             output_dims=output_dims, 

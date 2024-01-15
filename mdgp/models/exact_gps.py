@@ -22,7 +22,8 @@ class GeometricExactGP(gpytorch.models.ExactGP):
         num_eigenfunctions: int = 20, 
         normalize: bool = True, 
         lengthscale: float = 1.0, 
-        matern_gabo=True
+        matern_gabo=True, 
+        output_dims: int | None = None,
     ) -> None:
         base_kernel = GeometricMaternKernel(
             space=space, 

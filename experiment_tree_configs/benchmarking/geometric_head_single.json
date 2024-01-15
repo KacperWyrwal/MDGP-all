@@ -11,11 +11,10 @@
         "nu": 2.5,
         "to_tangent": "project",
         "outputscale_mean": 0.01,
-        "prior_class": "gamma",
-        "hidden_output_dims": 5
+        "prior_class": "gamma"
     },
     "data_arguments": {
-        "target_name": "smooth",
+        "target_name": "singular",
         "num_train": 400,
         "num_val": 500,
         "num_test": 2000,

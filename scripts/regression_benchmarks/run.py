@@ -61,7 +61,7 @@ def main(dir_path, overwrite=False, config_file_name='config.json'):
             run_experiment(experiment_config=experiment_config, dir_path=dir_path)
         else:
             print(f"""Skipping expeiement with the config: {os.path.join(dir_path, experiment_config.file_name)}
-            because it has status: {experiment_config.status}""")
+            because it has status: {experiment_config.status} and overwrite is set to {overwrite}.""")
 
 
 def crawl_and_run(start_directory, config_file_name='config.json', overwrite=False):

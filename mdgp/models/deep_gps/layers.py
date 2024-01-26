@@ -2,7 +2,7 @@ import torch
 import gpytorch 
 from torch import Tensor 
 from gpytorch.distributions import MultivariateNormal
-from gpytorch.variational import UnwhitenedVariationalStrategy, VariationalStrategy
+from gpytorch.variational import VariationalStrategy
 from mdgp.kernels import GeometricMaternKernel
 from mdgp.samplers import RFFSampler, VISampler, PosteriorSampler, sample_elementwise
 from mdgp.projectors import Exp, ToTangent
@@ -27,7 +27,7 @@ class DeepGPLayer(gpytorch.models.deep_gps.DeepGPLayer):
             num_inducing_points=num_inducing_points,
             batch_shape=batch_shape
         )
-        variational_strategy_class = VariationalStrategy if whitened_variational_strategy else UnwhitenedVariationalStrategy
+        variational_strategy_class = VariationalStrategy 
         variational_strategy = variational_strategy_class(
             self,
             inducing_points,

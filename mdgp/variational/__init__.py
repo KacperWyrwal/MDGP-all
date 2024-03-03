@@ -1,0 +1,2 @@
+from mdgp.variational.variational_strategy_factory import VariationalStrategyFactory
+from mdgp.variational.spherical_harmonic_features_variational_strategy import SphericalHarmonicFeaturesVariationalStrategy

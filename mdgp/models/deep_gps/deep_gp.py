@@ -1,10 +1,13 @@
+from torch import Tensor 
+from gpytorch.priors import Prior 
+
+
 import torch 
 import gpytorch 
-from torch import Tensor
-from geometric_kernels.spaces import Space, Euclidean
+from geometric_kernels.spaces import Space
 from mdgp.models.deep_gps import GeometricDeepGPLayer, EuclideanDeepGPLayer, ManifoldToManifoldDeepGPLayer
 from mdgp.utils import extrinsic_dimension
-from mdgp.models.initializers import initialize_grid, initialize_kmeans
+from mdgp.variational.variational_strategy_factory import VariationalStrategyFactory
 
 
 class DeepGP(gpytorch.models.deep_gps.DeepGP):
@@ -30,12 +33,11 @@ class DeepGP(gpytorch.models.deep_gps.DeepGP):
 
 class ResidualDeepGP(DeepGP): 
 
-    def __init__(
-            self, 
+    def __init__(self, 
             hidden_gps, 
             output_layer, 
             space, 
-            to_tangent: str = 'frame', # TODO maybe change into an enum or some immutable map 
+            to_tangent: str = 'project', # TODO maybe change into an enum
         ) -> None:
         # TODO propagate the change and merging of parameterised frame and rotated frame into to_tangent 
         hidden_layers = torch.nn.ModuleList([
@@ -44,15 +46,14 @@ class ResidualDeepGP(DeepGP):
         ])
         super().__init__(hidden_layers=hidden_layers, output_layer=output_layer)
 
-    def forward_return_hidden(
-            self, 
+    def forward_return_hidden(self, 
             x: Tensor, 
             are_samples: bool = False, 
             sample_hidden: str = 'elementwise', 
             sample_output: bool = False, 
             mean: bool = False, 
             resample_weights=True,
-        ):
+        ) -> tuple[list[dict[str, Tensor]], Tensor]:
         hidden_outputs = [] 
         for hidden_layer in self.hidden_layers: 
             hidden_dict = hidden_layer(x=x, are_samples=are_samples, sample=sample_hidden, mean=mean, return_hidden=True, resample_weights=resample_weights)
@@ -73,52 +74,50 @@ def get_output_dim(to_tangent: str, space: Space) -> int:
 
 
 class ResidualGeometricDeepGP(ResidualDeepGP):
-    def __init__(
-        self,
+    def __init__(self,
         space, 
         num_hidden: int,
-        num_inducing: int, # [N, 3]
-        input_points: Tensor,
-        output_dims=None, 
-        num_eigenfunctions: int = 20, 
-        nu: float = 2.5, 
-        learn_inducing_locations: bool = False, 
+        variational_strategy_factory: VariationalStrategyFactory,
+        output_dims: int | None = None, 
         to_tangent: str = 'project',
+        nu: float = 2.5, 
         optimize_nu: bool = False,
-        whitened_variational_strategy: bool = True, 
-        sampler_inv_jitter=10e-8,
-        outputscale_prior=None,
+        outputscale_prior: Prior | None = None,
+        sampler_inv_jitter: float | None = None,
+        num_eigenfunctions: int | None = None, 
+        num_random_phases: int | None = None,
         ) -> None:
-        hidden_output_dims = get_output_dim(to_tangent, space)
-        inducing_points = initialize_kmeans(input_points, space=space, n=num_inducing)
+        input_dims = extrinsic_dimension(space)
+        hidden_dims = get_output_dim(to_tangent, space)
         hidden_gps = [
             GeometricDeepGPLayer(
                 space=space,
-                num_eigenfunctions=num_eigenfunctions,
-                output_dims=hidden_output_dims,
-                inducing_points=inducing_points,
-                nu=nu, 
-                learn_inducing_locations=learn_inducing_locations,
-                optimize_nu=optimize_nu, 
-                whitened_variational_strategy=whitened_variational_strategy,
-                sampler_inv_jitter=sampler_inv_jitter, 
+                input_dims=input_dims,
+                variational_strategy_factory=variational_strategy_factory,
+                output_dims=hidden_dims,
+                mean='zero',
+                nu=nu,
+                optimize_nu=optimize_nu,
                 outputscale_prior=outputscale_prior,
-                mean='zero', 
+                sampler_inv_jitter=sampler_inv_jitter,
+                num_eigenfunctions=num_eigenfunctions,
+                num_random_phases=num_random_phases,
             )
             for _ in range(num_hidden)
         ]
 
         output_layer = GeometricDeepGPLayer(
             space=space,
-            num_eigenfunctions=num_eigenfunctions,
+            input_dims=input_dims,
+            variational_strategy_factory=variational_strategy_factory,
             output_dims=output_dims,
-            inducing_points=inducing_points,
-            nu=nu, 
-            learn_inducing_locations=learn_inducing_locations,
-            optimize_nu=optimize_nu, 
-            whitened_variational_strategy=whitened_variational_strategy,
+            mean='constant',
+            nu=nu,
+            optimize_nu=optimize_nu,
+            outputscale_prior=None,
             sampler_inv_jitter=sampler_inv_jitter,
-            mean='constant', 
+            num_eigenfunctions=num_eigenfunctions,
+            num_random_phases=num_random_phases,
         )
 
         super().__init__(hidden_gps=hidden_gps, output_layer=output_layer, to_tangent=to_tangent, space=space)
@@ -126,85 +125,91 @@ class ResidualGeometricDeepGP(ResidualDeepGP):
 
 class ResidualEuclideanDeepGP(ResidualDeepGP):
 
-    def __init__(
-        self,
+    def __init__(self,
         space: Space,
         num_hidden: int,
-        num_inducing: int,
-        input_points: Tensor,
-        output_dims=None, 
+        variational_strategy_factory: VariationalStrategyFactory,
+        to_tangent: str = 'project',
+        output_dims = None, 
         nu: float = 2.5, 
-        learn_inducing_locations: bool = False, 
-        to_tangent='project', 
         outputscale_prior=None,
+        sampler_inv_jitter: float | None = None,
+        num_eigenfunctions: int | None = None,
+        num_random_phases: int | None = None,
         ) -> None:
-        hidden_output_dims = get_output_dim(to_tangent, space)
-        inducing_points = initialize_kmeans(input_points, space=space, n=num_inducing)
+        input_dims = extrinsic_dimension(space)
+        hidden_dims = get_output_dim(to_tangent, space)
 
         hidden_gps = [
             EuclideanDeepGPLayer(
-                output_dims=hidden_output_dims,
-                inducing_points=inducing_points,
-                nu=nu, 
-                learn_inducing_locations=learn_inducing_locations,
-                mean='constant',
+                input_dims=input_dims,
+                variational_strategy_factory=variational_strategy_factory,
+                output_dims=hidden_dims,
+                mean='zero',
+                nu=nu,
                 outputscale_prior=outputscale_prior,
+                sampler_inv_jitter=sampler_inv_jitter,
+                num_eigenfunctions=num_eigenfunctions,
+                num_random_phases=num_random_phases,
             )
             for _ in range(num_hidden)
         ]
 
         # We learn inducing points, since we cannot just uniformly cover the Euclidean space 
         output_layer = EuclideanDeepGPLayer(
+            input_dims=input_dims,
+            variational_strategy_factory=variational_strategy_factory,
             output_dims=output_dims,
-            inducing_points=inducing_points,
-            nu=nu, 
-            learn_inducing_locations=True,
             mean='constant',
+            nu=nu,
+            outputscale_prior=outputscale_prior,
+            sampler_inv_jitter=sampler_inv_jitter,
+            num_eigenfunctions=num_eigenfunctions,
+            num_random_phases=num_random_phases,
         )
         super().__init__(hidden_gps=hidden_gps, output_layer=output_layer, to_tangent=to_tangent, space=space)
 
 
 class EuclideanDeepGP(DeepGP):
 
-    def __init__(
-        self,
+    def __init__(self,
+        space: Space,
         num_hidden: int,
-        num_inducing: int,
-        input_points: Tensor,
-        hidden_output_dims: int | None = None, 
+        variational_strategy_factory: VariationalStrategyFactory,
         output_dims = None, 
         nu: float = 2.5, 
-        learn_inducing_locations: bool = False, 
         outputscale_prior=None,
-        whitened_variational_strategy: bool = True, 
-        sampler_inv_jitter: float = 10e-8,
+        sampler_inv_jitter: float | None = None,
+        num_eigenfunctions: int | None = None,
+        num_random_phases: int | None = None,
     ) -> None:
-        if hidden_output_dims is None:
-            hidden_output_dims = input_points.shape[-1]
-        inducing_points = initialize_kmeans(input_points, space=Euclidean(dim=hidden_output_dims), n=num_inducing)
-
+        input_dims = extrinsic_dimension(space)
+        hidden_dims = input_dims
         hidden_layers = torch.nn.ModuleList([
             EuclideanDeepGPLayer(
-                output_dims=hidden_output_dims,
-                inducing_points=inducing_points,
-                nu=nu, 
-                learn_inducing_locations=learn_inducing_locations,
+                input_dims=input_dims,
+                variational_strategy_factory=variational_strategy_factory,
+                output_dims=hidden_dims,
                 mean='linear',
+                nu=nu,
                 outputscale_prior=outputscale_prior,
-                whitened_variational_strategy=whitened_variational_strategy,
-                sampler_inv_jitter=sampler_inv_jitter, 
+                sampler_inv_jitter=sampler_inv_jitter,
+                num_eigenfunctions=num_eigenfunctions,
+                num_random_phases=num_random_phases,
             )
             for _ in range(num_hidden)
         ])
 
         output_layer = EuclideanDeepGPLayer(
+            input_dims=input_dims,
+            variational_strategy_factory=variational_strategy_factory,
             output_dims=output_dims,
-            inducing_points=inducing_points,
-            nu=nu, 
-            learn_inducing_locations=learn_inducing_locations,
             mean='constant',
-            whitened_variational_strategy=whitened_variational_strategy,
-            sampler_inv_jitter=sampler_inv_jitter, 
+            nu=nu,
+            outputscale_prior=outputscale_prior,
+            sampler_inv_jitter=sampler_inv_jitter,
+            num_eigenfunctions=num_eigenfunctions,
+            num_random_phases=num_random_phases,
         )
         super().__init__(hidden_layers=hidden_layers, output_layer=output_layer)
     
@@ -215,60 +220,57 @@ class GeometricHeadDeepGP(DeepGP):
         self,
         space, 
         num_hidden: int,
-        num_inducing: int, 
-        input_points: Tensor,
-        hidden_output_dims: int | None = None, 
+        variational_strategy_factory: VariationalStrategyFactory,
         output_dims: int | None = None, 
-        num_eigenfunctions: int = 20, 
         nu: float = 2.5, 
         optimize_nu: bool = False,
-        learn_inducing_locations: bool = False, 
-        whitened_variational_strategy: bool = True, 
-        sampler_inv_jitter: float = 10e-8,
         outputscale_prior=None,
+        sampler_inv_jitter: float = 10e-8,
+        num_eigenfunctions: int | None = None, 
+        num_random_phases: int | None = None,
     ) -> None:
-        if hidden_output_dims is None:
-            hidden_output_dims = input_points.shape[-1]
-        geometric_inducing_points = initialize_kmeans(input_points, space=space, n=num_inducing)
-        euclidean_inducing_points = initialize_kmeans(input_points, space=Euclidean(dim=hidden_output_dims), n=num_inducing)
-
+        input_dims = extrinsic_dimension(space)
+        hidden_dims = input_dims
         
         hidden_layers = torch.nn.ModuleList([
             GeometricDeepGPLayer(
                 space=space,
-                num_eigenfunctions=num_eigenfunctions,
-                output_dims=hidden_output_dims,
-                inducing_points=geometric_inducing_points,
-                nu=nu, 
-                learn_inducing_locations=learn_inducing_locations,
-                optimize_nu=optimize_nu, 
-                whitened_variational_strategy=whitened_variational_strategy,
-                sampler_inv_jitter=sampler_inv_jitter, 
+                input_dims=input_dims,
+                variational_strategy_factory=variational_strategy_factory,
+                output_dims=hidden_dims,
+                mean='linear',
+                nu=nu,
+                optimize_nu=optimize_nu,
                 outputscale_prior=outputscale_prior,
-                mean='linear', 
+                sampler_inv_jitter=sampler_inv_jitter,
+                num_eigenfunctions=num_eigenfunctions,
+                num_random_phases=num_random_phases,
             ), 
             *[
                 EuclideanDeepGPLayer(
-                    output_dims=hidden_output_dims,
-                    inducing_points=euclidean_inducing_points,
-                    nu=nu, 
-                    learn_inducing_locations=True,
+                    input_dims=input_dims,
+                    variational_strategy_factory=variational_strategy_factory,
+                    output_dims=hidden_dims,
                     mean='linear',
+                    nu=nu,
                     outputscale_prior=outputscale_prior,
-                    whitened_variational_strategy=whitened_variational_strategy,
                     sampler_inv_jitter=sampler_inv_jitter,
+                    num_eigenfunctions=num_eigenfunctions,
+                    num_random_phases=num_random_phases,
                 )
                 for _ in range(num_hidden - 1)
             ],
         ])
         output_layer = EuclideanDeepGPLayer(
+            input_dims=input_dims,
+            variational_strategy_factory=variational_strategy_factory,
             output_dims=output_dims,
-            inducing_points=euclidean_inducing_points,
-            nu=nu, 
-            learn_inducing_locations=True,
             mean='constant',
-            whitened_variational_strategy=whitened_variational_strategy,
+            nu=nu,
+            outputscale_prior=outputscale_prior,
             sampler_inv_jitter=sampler_inv_jitter,
+            num_eigenfunctions=num_eigenfunctions,
+            num_random_phases=num_random_phases,
         )
         super().__init__(hidden_layers=hidden_layers, output_layer=output_layer)
     

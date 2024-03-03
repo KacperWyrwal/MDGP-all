@@ -3,21 +3,21 @@ from geometric_kernels.kernels.matern_kernel import MaternGeometricKernel
 from geometric_kernels.spaces import Space, Euclidean
 from torch import Generator
 from warnings import warn 
-from gpytorch.kernels import MaternKernel
+from gpytorch.kernels import MaternKernel, RBFKernel
 from geometric_kernels.types import FeatureMap
 from geometric_kernels.kernels.matern_kernel import default_feature_map
 
 
 
 class BaseMaternKernel:
-    def __init__(self, space, seed: None | int = None): 
+    def __init__(self, space, num: int | None = None, seed: None | int = None): 
         # Set RNG randomly or with a seed
         key = Generator() 
         if seed is not None:
             key.manual_seed(seed)        
         self.seed = seed 
         self.key = key 
-        self.feature_map = default_feature_map(space=space)
+        self.feature_map = default_feature_map(space=space, num=num)
 
 
 class _GeometricMaternKernel(BaseMaternKernel, GPytorchGeometricKernel): 
@@ -32,13 +32,14 @@ class _GeometricMaternKernel(BaseMaternKernel, GPytorchGeometricKernel):
         num_eigenfunctions: int | None = None, 
         **kwargs, 
     ) -> None: 
-        BaseMaternKernel.__init__(self, space=space, seed=seed)
-
+        num = num_eigenfunctions or num_random_phases
         if num_random_phases is not None and num_eigenfunctions is not None:
-            warn("Only one of num_random_phases and num_eigenfunctions will be used. You have passed both. Make sure this is intended.")
+            warn(f"If both {num_random_phases=} and {num_eigenfunctions=} are passed, only num_eigenfunctions will be used.")
+
+        BaseMaternKernel.__init__(self, space=space, seed=seed, num=num)
         base_kernel = MaternGeometricKernel(
             space=space, 
-            num=num_random_phases or num_eigenfunctions, 
+            num=num, 
             normalize=True, 
             return_feature_map=False, 
             key=self.key, 
@@ -79,6 +80,32 @@ class _EuclideanMaternKernel(BaseMaternKernel, MaternKernel):
             'lengthscale': self.lengthscale, 
             'nu': self.nu, 
         }
+    
+
+class _EuclideanRBFKernel(BaseMaternKernel, RBFKernel):
+    def __init__(
+        self, 
+        space: Euclidean, 
+        lengthscale: float = 1.0,
+        seed: int | None = None,
+        **kwargs, 
+    ) -> None: 
+        BaseMaternKernel.__init__(self, space=space, seed=seed)
+        RBFKernel.__init__(self, **kwargs)
+        self.initialize(lengthscale=lengthscale) 
+        self._batch_shape_scaling_factor = torch.tensor(1.)
+        self.space = space 
+
+    @property
+    def batch_shape_scaling_factor(self):
+        return self._batch_shape_scaling_factor
+
+    @property
+    def geometric_kernel_params(self):
+        return {
+            'lengthscale': self.lengthscale, 
+            'nu': torch.inf, 
+        }
 
 
 class GeometricMaternKernel: 
@@ -93,8 +120,11 @@ class GeometricMaternKernel:
         num_eigenfunctions: int | None = None,
         **kwargs,
     ) -> _GeometricMaternKernel | _EuclideanMaternKernel: 
-        if isinstance(space, Euclidean):
-            return _EuclideanMaternKernel(space=space, lengthscale=lengthscale, nu=nu, trainable_nu=trainable_nu, seed=seed, **kwargs)
+        if isinstance(space, Euclidean): 
+            if nu == torch.inf: 
+                return _EuclideanRBFKernel(space=space, lengthscale=lengthscale, seed=seed, **kwargs)
+            else:
+                return _EuclideanMaternKernel(space=space, lengthscale=lengthscale, nu=nu, trainable_nu=trainable_nu, seed=seed, **kwargs)
         return _GeometricMaternKernel(
             space=space, lengthscale=lengthscale, nu=nu, trainable_nu=trainable_nu, seed=seed, 
             num_random_phases=num_random_phases, num_eigenfunctions=num_eigenfunctions, **kwargs)

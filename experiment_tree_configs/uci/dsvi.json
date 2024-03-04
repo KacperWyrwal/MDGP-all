@@ -9,7 +9,7 @@
     },
     "fit_arguments": {
         "batch_size": 10000,
-        "num_iterations": 5
+        "num_iterations": 20000
     },
     "runs": [0, 1, 2, 3, 4],
     "status": "ready"

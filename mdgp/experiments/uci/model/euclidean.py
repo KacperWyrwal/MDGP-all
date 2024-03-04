@@ -25,7 +25,7 @@ def get_hidden_dims(dataset: UCIDataset) -> int:
     return min(MAX_HIDDEN_DIMS, dataset.dimension)
 
 
-def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 10) -> Tensor:
+def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 100) -> Tensor:
     """
     Initialize inducing points using kmeans. (from paper)
     """

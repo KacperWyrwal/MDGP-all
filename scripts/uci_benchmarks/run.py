@@ -25,9 +25,15 @@ def run_experiment(experiment_config: ExperimentConfig, device: torch.device, di
 def main(dir_path, overwrite=False, config_file_name='config.json'):
     with ExperimentConfigReader(os.path.join(dir_path, config_file_name), overwrite=overwrite) as experiment_config: 
         if experiment_config.can_run:
-            print(f"Running experiment with config: {os.path.join(dir_path, experiment_config.file_name)}")
             experiment_config.set_seed()
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+            print((
+                f"{'Running experiments'.center(80, '=')}\n"
+                f"Config: {os.path.join(dir_path, experiment_config.file_name)}\n"
+                f"Device: {device}"
+            ))
+            
             run_experiment(experiment_config=experiment_config, device=device, dir_path=dir_path)
         else:
             print((
@@ -44,7 +50,6 @@ def crawl_and_run(start_directory, config_file_name='config.json', overwrite=Fal
 
 if __name__ == '__main__':
     torch.set_default_dtype(torch.float32)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     parser = ArgumentParser(description='Run experiment on UCI datasets')
     parser.add_argument('dir_path', type=str, help='The parent directory to start crawling from.')

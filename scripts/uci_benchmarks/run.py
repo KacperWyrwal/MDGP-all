@@ -10,7 +10,7 @@ def run_experiment(experiment_config: ExperimentConfig, device: torch.device, di
     dataset = experiment_config.data_arguments.dataset
     model = experiment_config.model_arguments.get_model(dataset).to(device)
     train_loss = train(dataset, model, experiment_config.fit_arguments, device=device)
-    test_metrics = evaluate(dataset, model)
+    test_metrics = evaluate(dataset, model, device=device)
 
     # Save results
     test_metrics_dir = os.path.join(dir_path, 'test')

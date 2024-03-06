@@ -66,12 +66,16 @@ def train(dataset: UCIDataset, model: DeepGP, fit_args: FitArguments, device: to
     return losses 
 
 
-def evaluate(dataset: UCIDataset, model: DeepGP) -> dict[str, float]:
+def evaluate(dataset: UCIDataset, model: DeepGP, device: torch.device) -> dict[str, float]:
     with torch.no_grad():
-        out = model.likelihood(model(dataset.test_x))
-        tll = test_log_likelihood(out, dataset.test_y, dataset.test_y_std)
-        mse = mean_squared_error(out, dataset.test_y, dataset.test_y_std)
-        nlpd = negative_log_predictive_density(out, dataset.test_y)
+        test_x = dataset.test_x.to(device)
+        test_y = dataset.test_y.to(device)
+        test_y_std = dataset.test_y_std.to(device)
+
+        out = model.likelihood(model(test_x))
+        tll = test_log_likelihood(out, test_y, test_y_std)
+        mse = mean_squared_error(out, test_y, test_y_std)
+        nlpd = negative_log_predictive_density(out, test_y)
         metrics = {
             'tll': tll.mean().item(), 
             'mse': mse.mean().item(),

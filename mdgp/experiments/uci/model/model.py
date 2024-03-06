@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from gpytorch.models.deep_gps import DeepGP
 from mdgp.experiments.uci.model.euclidean import EuclideanDeepGP
-
+from mdgp.experiments.uci.model.geometric import GeometricDeepGP
 
 # Settings from the paper 
 NUM_INDUCING_POINTS = 100
@@ -17,5 +17,6 @@ class ModelArguments:
         if self.model_name == 'euclidean':
             return EuclideanDeepGP(dataset, num_layers=self.num_layers, num_inducing_points=self.num_inducing)
         else:
+            return 
             raise ValueError(f"Unknown model: {self.model_name}")
         

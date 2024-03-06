@@ -13,6 +13,9 @@ def negative_log_predictive_density(outputs: MultivariateNormal, targets: Tensor
 
 def test_log_likelihood(outputs: MultivariateNormal, targets: Tensor, y_std: Tensor) -> Tensor:
     mean, stddev = outputs.mean, outputs.stddev
+    # Since we are working with scipy, we move tensors to CPU. Fortunately, this isn't an expensive operation.
+    mean, stddev, targets, y_std = mean.cpu(), stddev.cpu(), targets.cpu(), y_std.cpu()
+
     logpdf = torch.distributions.Normal(loc=mean, scale=stddev).log_prob(targets) - torch.log(y_std)
     # average over likelihood samples 
     logpdf = logsumexp(logpdf.numpy(), axis=0, b=1 / mean.size(0))

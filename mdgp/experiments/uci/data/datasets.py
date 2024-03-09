@@ -43,13 +43,14 @@ class UCIDataset:
 
     UCI_BASE_URL = 'https://archive.ics.uci.edu/ml/machine-learning-databases/'
 
-    def __init__(self, name: str, url: str, path: str = '../../data/uci/', seed: int | None = None): 
+    def __init__(self, name: str, url: str, num_outputs: int = 1, path: str = '../../data/uci/', seed: int | None = None): 
         self.generator = torch.Generator()
         if seed is not None: 
             self.generator.manual_seed(seed)
 
         self.name = name 
         self.url = url
+        self.num_outputs = num_outputs
         self.path = path 
         self.csv_path = os.path.join(self.path, self.name + '.csv')
 
@@ -79,7 +80,7 @@ class UCIDataset:
 
     def read_data(self) -> tuple[Tensor, Tensor]:
         xy = torch.from_numpy(pd.read_csv(self.csv_path).values).to(torch.get_default_dtype())
-        return xy[:, :-1], xy[:, -1]
+        return xy[:, :-self.num_outputs], xy[:, -self.num_outputs:]
 
     def load_data(self, overwrite: bool = False) -> tuple[Tensor, Tensor]:
         if overwrite or not os.path.isfile(self.csv_path):
@@ -93,7 +94,7 @@ class Kin8mn(UCIDataset):
 
     def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
         url = url or Kin8mn.DEFAULT_URL
-        super().__init__(name='kin8nm', path=path, url=url, seed=seed)
+        super().__init__(name='kin8nm', path=path, url=url, num_outputs=1, seed=seed)
 
     def download_data(self) -> None:
         df = pd.read_csv(self.url)
@@ -107,7 +108,7 @@ class Power(UCIDataset):
 
     def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
         url = url or Power.DEFAULT_URL
-        super().__init__(name='power', path=path, url=url, seed=seed)
+        super().__init__(name='power', path=path, url=url, num_outputs=1, seed=seed)
 
     def download_data(self):
         with urlopen(self.url) as zipresp:
@@ -125,9 +126,35 @@ class Concrete(UCIDataset):
 
     def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
         url = url or Concrete.DEFAULT_URL
-        super().__init__(name='concrete', url=url, seed=seed)
+        super().__init__(name='concrete', path=path, url=url, num_outputs=1, seed=seed)
 
     def download_data(self):
         df = pd.read_excel(self.url)
+        os.makedirs(self.path, exist_ok=True)
+        df.to_csv(self.csv_path, index=False)
+
+
+class Energy(UCIDataset):
+    DEFAULT_URL = UCIDataset.UCI_BASE_URL + '00242/ENB2012_data.xlsx'
+
+    def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
+        url = url or Energy.DEFAULT_URL
+        super().__init__(name='energy', path=path, url=url, num_outputs=1, seed=seed)
+
+    def download_data(self):
+        df = pd.read_excel(self.url).drop(columns='Y2')
+        os.makedirs(self.path, exist_ok=True)
+        df.to_csv(self.csv_path, index=False)
+
+
+class EnergyDSVI(UCIDataset):
+    DEFAULT_URL = UCIDataset.UCI_BASE_URL + '00242/ENB2012_data.xlsx'
+
+    def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
+        url = url or Energy.DEFAULT_URL
+        super().__init__(name='energy', path=path, url=url, num_outputs=1, seed=seed)
+
+    def download_data(self):
+        df = pd.read_excel(self.url).drop(columns='Y2')
         os.makedirs(self.path, exist_ok=True)
         df.to_csv(self.csv_path, index=False)

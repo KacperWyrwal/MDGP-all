@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from gpytorch.models.deep_gps import DeepGP
 from mdgp.experiments.uci.model.euclidean import EuclideanDeepGP
-from mdgp.experiments.uci.model.geometric import GeometricDeepGP
+from mdgp.experiments.uci.model.geometric import SHFDeepGP
 
 # Settings from the paper 
 NUM_INDUCING_POINTS = 100

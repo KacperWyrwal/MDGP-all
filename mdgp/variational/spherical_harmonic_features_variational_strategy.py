@@ -1,6 +1,6 @@
 import torch 
-import gpytorch 
 from torch import nn 
+from gpytorch import settings 
 from gpytorch.models import ApproximateGP
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.variational import CholeskyVariationalDistribution
@@ -14,7 +14,7 @@ class SphericalHarmonicFeaturesVariationalStrategy(nn.Module):
         super().__init__()
         object.__setattr__(self, "_model", model)
         self._variational_distribution = variational_distribution
-        self.jitter_val = jitter_val or gpytorch.settings.cholesky_jitter.value()
+        self.jitter_val = jitter_val or settings.cholesky_jitter.value(torch.get_default_dtype())
         self.num_levels = num_levels
 
     @property
@@ -45,24 +45,26 @@ class SphericalHarmonicFeaturesVariationalStrategy(nn.Module):
 
         # whitened prior at u
         Linv_pu = self.prior_distribution
-        Linv_mu, Linv_Kuu_LTinv = Linv_pu.mean, Linv_pu.lazy_covariance_matrix
+        Linv_mu, Linv_Kuu_LTinv = Linv_pu.mean, Linv_pu.lazy_covariance_matrix # [..., N], [..., N, N]
 
         # whitened variational posterior at u
         Linv_qu = self.variational_distribution
-        Linv_m, Linv_S_LTinv = Linv_qu.mean, Linv_qu.lazy_covariance_matrix
+        Linv_m, Linv_S_LTinv = Linv_qu.mean, Linv_qu.lazy_covariance_matrix # [..., M], [..., M, M]
 
         # unwhitening + projection and vice-versa
         LT_Phiux = matern_LT_Phi_from_kernel(x, self.model.covar_module, num_levels=self.num_levels, num_levels_prior=self.model.max_ell_prior)
-        Phixu_L = LT_Phiux.mT
+        Phixu_L = LT_Phiux.mT # [..., N, M]
 
         # posterior at x 
-        qx_sigma = Kxx + Phixu_L @ (Linv_S_LTinv - Linv_Kuu_LTinv) @ LT_Phiux
+        qx_sigma = Kxx + Phixu_L @ (Linv_S_LTinv - Linv_Kuu_LTinv) @ LT_Phiux # [..., N, N] + [..., N, M] @ [..., M, M] @ [..., M, N] -> [..., N, N]
         qx_sigma = qx_sigma.add_jitter(self.jitter_val)
-        qx_mu = mu_x + Phixu_L @ (Linv_m - Linv_mu)
+
+        # qx_mu = mu_x + Phixu_L @ (Linv_m - Linv_mu)
+        qx_mu = mu_x + torch.einsum("...ij,...j->...i", Phixu_L, Linv_m - Linv_mu) # [..., M, M] @ [..., M] -> [..., M]
         return MultivariateNormal(qx_mu, qx_sigma)
     
     def kl_divergence(self):
-        with gpytorch.settings.max_preconditioner_size(0):
+        with settings.max_preconditioner_size(0):
             kl_divergence = torch.distributions.kl.kl_divergence(self.variational_distribution, self.prior_distribution)
         return kl_divergence
     

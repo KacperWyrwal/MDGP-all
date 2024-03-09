@@ -7,7 +7,7 @@ from gpytorch.models.deep_gps import DeepGPLayer, DeepGP
 from gpytorch.kernels import RBFKernel, ScaleKernel
 from gpytorch.means import ConstantMean, LinearMean
 from gpytorch.distributions import MultivariateNormal
-from gpytorch.likelihoods import GaussianLikelihood
+from gpytorch.likelihoods import GaussianLikelihood, MultitaskGaussianLikelihood
 from mdgp.experiments.uci.data.datasets import UCIDataset
 from scipy.cluster.vq import kmeans2, ClusterError
 
@@ -87,9 +87,9 @@ class EuclideanDeepGP(DeepGP):
 
         self.layers = torch.nn.ModuleList(
             [EuclideanDeepGPLayer(inducing_points, num_hidden_dims, hidden=True) for _ in range(num_layers - 1)] + 
-            [EuclideanDeepGPLayer(inducing_points, None, hidden=False)]
+            [EuclideanDeepGPLayer(inducing_points, dataset.num_outputs, hidden=False)]
         )
-        self.likelihood = GaussianLikelihood()
+        self.likelihood = MultitaskGaussianLikelihood(dataset.num_outputs)
         self.likelihood.noise = LIKELIHOOD_VARIANCE
 
     def forward(self, x):

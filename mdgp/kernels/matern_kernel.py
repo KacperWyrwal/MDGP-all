@@ -66,13 +66,7 @@ class _EuclideanMaternKernel(BaseMaternKernel, MaternKernel):
         BaseMaternKernel.__init__(self, space=space, seed=seed)
         MaternKernel.__init__(self, nu=nu, **kwargs)
         self.initialize(lengthscale=lengthscale) 
-        self._batch_shape_scaling_factor = torch.tensor(1.)
         self.space = space 
-
-    
-    @property
-    def batch_shape_scaling_factor(self):
-        return self._batch_shape_scaling_factor
 
     @property
     def geometric_kernel_params(self):
@@ -93,12 +87,7 @@ class _EuclideanRBFKernel(BaseMaternKernel, RBFKernel):
         BaseMaternKernel.__init__(self, space=space, seed=seed)
         RBFKernel.__init__(self, **kwargs)
         self.initialize(lengthscale=lengthscale) 
-        self._batch_shape_scaling_factor = torch.tensor(1.)
         self.space = space 
-
-    @property
-    def batch_shape_scaling_factor(self):
-        return self._batch_shape_scaling_factor
 
     @property
     def geometric_kernel_params(self):

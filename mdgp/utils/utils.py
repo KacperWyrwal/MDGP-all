@@ -20,4 +20,4 @@ def test_psd(S: Tensor | LinearOperator, tol: float = 1e-8) -> None:
     assert torch.allclose(S, S.mT), "K should be symmetric."
 
     eigs = torch.linalg.eigvalsh(S)
-    assert (eigs > -tol).all(), "K should be positive definite."
+    assert (eigs > -tol).all(), f"K should be positive definite. It has minimum eigenvalue of {eigs.min().item()}."

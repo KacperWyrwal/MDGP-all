@@ -24,7 +24,7 @@ import csv
 
 
 class Dataset(object):
-    def __init__(self, name, N, D, type, data_path='/data/'):
+    def __init__(self, name, N, D, type, data_path='/home/kacperwyrwal/MDGP/MDGP-all-bo/data/dsvi/'):
         self.data_path = data_path
         self.name, self.N, self.D = name, N, D
         assert type in ['regression', 'classification', 'multiclass']
@@ -74,6 +74,8 @@ class Dataset(object):
     def normalize(self, split_data, X_or_Y):
         m = np.average(split_data[X_or_Y], 0)[None, :]
         s = np.std(split_data[X_or_Y + 's'], 0)[None, :] + 1e-6
+        # s = np.std(split_data[X_or_Y], 0)[None, :] + 1e-6
+        print(f"Normalizing {X_or_Y} with mean {m} and std {s}")
 
         split_data[X_or_Y] = (split_data[X_or_Y] - m) / s
         split_data[X_or_Y + 's'] = (split_data[X_or_Y + 's'] - m) / s
@@ -115,8 +117,7 @@ class Concrete(Dataset):
 
 class Energy(Dataset):
     def __init__(self):
-        self.name, self.N, self.D = 'energy', 768, 8
-        self.type = 'regression'
+        super().__init__(name='energy', N=768, D=8, type='regression')
 
     def download_data(self):
         url = '{}{}'.format(uci_base, '00242/ENB2012_data.xlsx')
@@ -124,7 +125,9 @@ class Energy(Dataset):
         data = pandas.read_excel(url).values
         data = data[:, :-1]
 
-        with open(self.csv_file_path(self.name), 'w') as f:
+        file_path = self.csv_file_path(self.name)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as f:
             csv.writer(f).writerows(data)
 
 

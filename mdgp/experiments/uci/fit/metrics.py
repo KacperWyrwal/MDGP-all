@@ -34,9 +34,9 @@ def test_log_likelihood(outputs: MultivariateNormal, targets: Tensor, y_std: Ten
 
     logpdf = torch.distributions.Normal(loc=mean, scale=stddev).log_prob(targets) - torch.log(y_std)
     # average over likelihood samples 
-    logpdf = logsumexp(logpdf.numpy(), axis=0, b=1 / mean.size(0))
+    logpdf = logsumexp(logpdf.cpu().numpy(), axis=0, b=1 / mean.size(0))
     # average over data points
-    return torch.from_numpy(logpdf).mean()
+    return torch.from_numpy(logpdf).to(logpdf).mean()
 
 
 def mean_squared_error(outputs: MultivariateNormal, targets: Tensor, y_std: Tensor | None = None) -> Tensor:

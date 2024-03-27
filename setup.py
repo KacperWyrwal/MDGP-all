@@ -11,7 +11,9 @@ requirements = [
     # "geoopt",
     # "lightning",
     # "plotly",
-    # "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
+    "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
+    "tqdm",
+    "gpytorch @ git+https://github.com/KacperWyrwal/gpytorch-efficient-expand.git@master",
     # "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
 ]
 

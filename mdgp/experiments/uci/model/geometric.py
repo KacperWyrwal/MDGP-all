@@ -176,6 +176,5 @@ class SHFDeepGP(DeepGP):
             tangent = self.space.to_tangent(ambient, x)
             with torch.device(x.device):
                 x = self.space.metric.exp(tangent, x)
-            x = self.space.metric.exp(tangent, x)
             are_samples = True
         return self.layers[-1](x, are_samples=are_samples)

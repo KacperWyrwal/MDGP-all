@@ -25,7 +25,7 @@ def num_harmonics(ell: Tensor, d: int) -> Tensor:
     """
     Number of spherical harmonics of degree ell on S^d.
     """
-    return ell.apply_(lambda e: num_harmonics_single(ell=e, d=d)).int()
+    return ell.cpu().apply_(lambda e: num_harmonics_single(ell=e, d=d)).int().to(ell.device)
 
 
 def total_num_harmonics(max_ell: int, d: int) -> int:

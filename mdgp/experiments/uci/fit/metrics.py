@@ -18,8 +18,8 @@ def test_log_likelihood_batch(outputs: MultivariateNormal, targets: Tensor, y_st
     y_std = y_std if y_std is not None else targets.new_ones(1)
     logpdf: Tensor = torch.distributions.Normal(loc=mean, scale=stddev).log_prob(targets) - torch.log(y_std) 
     logpdf = logpdf.sum(-1)
-    logpdf = logsumexp(logpdf.numpy(), axis=0, b=1 / mean.size(0))
-    return torch.from_numpy(logpdf)
+    logpdf = logsumexp(logpdf.cpu().numpy(), axis=0, b=1 / mean.size(0))
+    return torch.from_numpy(logpdf).to(mean)
 
 
 def negative_log_predictive_density(outputs: MultivariateNormal, targets: Tensor, y_std: Tensor | None = None) -> Tensor:

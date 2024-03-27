@@ -74,7 +74,7 @@ def matern_spectral_density_normalizer(d: int, max_ell: int, kappa: Tensor, nu: 
     Depends on kappa and nu. Also depends on max_ell, as truncation of the infinite 
     sum from Karhunen-Loeve decomposition. 
     """
-    n = torch.arange(max_ell).to(kappa)
+    n = torch.arange(max_ell).to(kappa.device)
     spectral_values = unnormalized_matern_spectral_density(n=n, d=d, kappa=kappa, nu=nu) # [O, max_ell + 1, 1]
     num_harmonics_per_level = num_harmonics(n, d=d) # [max_ell + 1]
     normalizer = spectral_values.mT @ num_harmonics_per_level # [O, 1, max_ell + 1] @ [max_ell + 1] -> [O, 1]
@@ -104,7 +104,7 @@ def matern_repeated_ahat(max_ell: int, max_ell_prior: int, d: int, kappa: Tensor
     """
     Returns a tensor of repeated ahat values for each ell. 
     """
-    ells = torch.arange(max_ell).to(kappa) # [max_ell + 1]
+    ells = torch.arange(max_ell).to(kappa.device) # [max_ell + 1]
     ahat = matern_ahat(ell=ells, d=d, max_ell=max_ell_prior, kappa=kappa, nu=nu, sigma=sigma) # [O, max_ell + 1, 1]
     repeats = num_harmonics(ell=ells, d=d) # [max_ell + 1]
     return torch.repeat_interleave(ahat, repeats=repeats, dim=-2) # [O, num_harmonics, 1]

@@ -174,6 +174,7 @@ class SHFDeepGP(DeepGP):
         for layer in self.layers[:-1]:
             ambient = sample_elementwise(layer(x, are_samples=are_samples))
             tangent = self.space.to_tangent(ambient, x)
+            assert ambient.device == tangent.device == x.device, f"All tensors should be on the same device. Got {ambient.device=}, {tangent.device=}, {x.device=}"
             x = self.space.metric.exp(tangent, x)
             are_samples = True
         return self.layers[-1](x, are_samples=are_samples)

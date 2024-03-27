@@ -8,7 +8,7 @@ from gpytorch.models.deep_gps import DeepGPLayer, DeepGP
 from gpytorch.kernels import ScaleKernel
 from gpytorch.means import ConstantMean
 from gpytorch.distributions import MultivariateNormal
-from gpytorch.likelihoods import GaussianLikelihood, MultitaskGaussianLikelihood
+from gpytorch.likelihoods import MultitaskGaussianLikelihood
 from geometric_kernels.spaces import Hypersphere
 from mdgp.experiments.uci.data.datasets import UCIDataset
 from mdgp.kernels import GeometricMaternKernel
@@ -25,6 +25,7 @@ OUTPUT_LAYER_VARIANCE = 1.0 # This is a (reasonable) guess
 # NUM_INDUCING_POINTS = 100 # This is from DSVI paper 
 NUM_HARMONICS_KERNEL = 625 # Minimum number of harmonics to represent a kernel. Equivalent to 25 levels on S^2
 NU = 1.5 # Should be inf to match DSVI, but will do for now 
+OPTIMIZE_NU = False # False to match spherical harmonics paper
 
 
 dimension_to_num_harmonics_variational = {
@@ -32,6 +33,58 @@ dimension_to_num_harmonics_variational = {
     6: 294,
     8: 210,
 }
+
+
+import gpytorch 
+from mdgp.samplers import sample_elementwise
+from linear_operator.operators import BlockDiagLinearOperator
+
+
+class DeepGPLayer(gpytorch.models.ApproximateGP):
+
+    def __init__(self, variational_strategy, input_dims, output_dims):
+        super(DeepGPLayer, self).__init__(variational_strategy)
+        self.input_dims = input_dims
+        self.output_dims = output_dims
+
+    def forward(self, x):
+        raise NotImplementedError
+
+    def __call__(self, inputs, are_samples=False, **kwargs):
+        if isinstance(inputs, gpytorch.distributions.MultitaskMultivariateNormal):
+            inputs = sample_elementwise(inputs)
+            are_samples = True 
+
+        if gpytorch.settings.debug.on():
+            if not torch.is_tensor(inputs):
+                raise ValueError(
+                    "`inputs` should either be a MultitaskMultivariateNormal or a Tensor, got "
+                    f"{inputs.__class__.__Name__}"
+                )
+
+            if inputs.size(-1) != self.input_dims:
+                raise RuntimeError(
+                    f"Input shape did not match self.input_dims. Got total feature dims [{inputs.size(-1)}],"
+                    f" expected [{self.input_dims}]"
+                )
+
+        # Repeat the input for all possible outputs
+        if self.output_dims is not None:
+            inputs = inputs.unsqueeze(-3) # No need to expand 
+
+        # Now run samples through the GP
+        output = gpytorch.models.ApproximateGP.__call__(self, inputs, **kwargs)
+        if self.output_dims is not None:
+            mean = output.loc.transpose(-1, -2)
+            covar = BlockDiagLinearOperator(output.lazy_covariance_matrix, block_dim=-3)
+            output = gpytorch.distributions.MultitaskMultivariateNormal(mean, covar, interleaved=False)
+
+        # Maybe expand inputs?
+        if not are_samples:
+            # output = output.expand(torch.Size([gpytorch.settings.num_likelihood_samples.value()]) + output.shape)
+            output = output.expand(torch.Size([gpytorch.settings.num_likelihood_samples.value()]) + output.batch_shape)
+
+        return output
 
 
 class SHFDeepGPLayer(DeepGPLayer):
@@ -89,7 +142,7 @@ class SHFDeepGP(DeepGP):
         dataset: UCIDataset,
         num_layers: int | None = None, 
         jitter_val: float | None = None, 
-        optimize_nu: bool = True, 
+        optimize_nu: bool = OPTIMIZE_NU, 
     ) -> None:
 
         super().__init__()

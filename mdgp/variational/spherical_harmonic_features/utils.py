@@ -55,7 +55,7 @@ def unnormalized_matern_spectral_density(n: Tensor, d: int, kappa: Tensor, nu: T
     """
     # Squared exponential kernel 
     if nu.isinf().all():
-        exponent = -kappa ** 2 / 2 * eigenvalue_laplacian(ell=n, d=d) # [O, N, 1]
+        exponent = -kappa ** 2 / 2 * eigenvalue_laplacian(ell=n, d=d).unsqueeze(-1) # [O, N, 1]
         return torch.exp(exponent)
     # Matern kernel
     else:

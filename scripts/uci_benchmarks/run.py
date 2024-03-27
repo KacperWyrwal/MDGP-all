@@ -1,7 +1,13 @@
+# Geomstats and GeometricKernels backends 
+import geometric_kernels.torch 
+import os
+os.environ['GEOMSTATS_BACKEND'] = 'pytorch'
+
+
 import os 
 import torch 
 import pandas as pd 
-from mdgp.experiments.uci.fit import train, evaluate
+from mdgp.experiments.uci.fit import train, evaluate_deep
 from mdgp.experiments.uci.experiment import ExperimentConfigReader, ExperimentConfig
 from argparse import ArgumentParser
 
@@ -9,10 +15,13 @@ from argparse import ArgumentParser
 def run_experiment(experiment_config: ExperimentConfig, device: torch.device, dir_path: str) -> None:
     dataset = experiment_config.data_arguments.dataset
     model = experiment_config.model_arguments.get_model(dataset).to(device)
-    train_loss = train(dataset, model, experiment_config.fit_arguments, device=device)
-    test_metrics = evaluate(dataset, model, device=device)
+    projector = experiment_config.model_arguments.get_projector().to(device)
+    print("Training...")
+    train_loss = train(dataset, model, projector=projector, fit_args=experiment_config.fit_arguments, device=device)
+    print("Evaluating...")
+    test_metrics = evaluate_deep(dataset, model, projector=projector, fit_args=experiment_config.fit_arguments, device=device)
 
-    # Save results
+    print("Saving results...")
     test_metrics_dir = os.path.join(dir_path, 'test')
     os.makedirs(test_metrics_dir, exist_ok=True)
     pd.DataFrame(test_metrics, index=[0]).to_csv(os.path.join(test_metrics_dir, 'metrics.csv'), index=False)
@@ -20,6 +29,7 @@ def run_experiment(experiment_config: ExperimentConfig, device: torch.device, di
     train_loss_dir = os.path.join(dir_path, 'train')
     os.makedirs(train_loss_dir, exist_ok=True)
     pd.DataFrame({'elbo': train_loss}).to_csv(os.path.join(train_loss_dir, 'metrics.csv'), index=False)
+    print("Done.")
 
 
 def main(dir_path, overwrite=False, config_file_name='config.json'):

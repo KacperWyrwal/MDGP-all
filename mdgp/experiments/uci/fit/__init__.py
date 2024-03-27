@@ -1,1 +1,1 @@
-from mdgp.experiments.uci.fit.fit import FitArguments, train, evaluate
+from mdgp.experiments.uci.fit.fit import FitArguments, train, evaluate_shallow, evaluate_deep

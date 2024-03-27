@@ -5,7 +5,7 @@ from gpytorch.models import ApproximateGP
 from gpytorch.distributions import MultivariateNormal
 from gpytorch.variational import CholeskyVariationalDistribution
 from gpytorch.utils.memoize import cached
-from linear_operator.operators import DiagLinearOperator
+from linear_operator.operators import DiagLinearOperator, DenseLinearOperator, IdentityLinearOperator
 from mdgp.variational.spherical_harmonic_features.utils import matern_LT_Phi_from_kernel
 
 
@@ -38,8 +38,9 @@ class SphericalHarmonicFeaturesVariationalStrategy(nn.Module):
         return res
 
     def forward(self, x) -> MultivariateNormal:
+        # print(x.shape)
         # prior at x 
-        px = self.model.forward(x)
+        px = self(x, prior=True)
         mu_x, Kxx = px.mean, px.lazy_covariance_matrix
         Kxx = Kxx.add_jitter(self.jitter_val)
 
@@ -53,14 +54,20 @@ class SphericalHarmonicFeaturesVariationalStrategy(nn.Module):
 
         # unwhitening + projection and vice-versa
         LT_Phiux = matern_LT_Phi_from_kernel(x, self.model.covar_module, num_levels=self.num_levels, num_levels_prior=self.model.max_ell_prior)
+        LT_Phiux = DenseLinearOperator(LT_Phiux) # [..., M, N]
         Phixu_L = LT_Phiux.mT # [..., N, M]
 
         # posterior at x 
+        # TODO With D output dimensions and L likelihood samples we get multiplication shapes [L, D, N, M] @ [D, M, M].
+        # Even with LT_Phiux being a LinearOperator, and thus lazy, this is still a problem.
         qx_sigma = Kxx + Phixu_L @ (Linv_S_LTinv - Linv_Kuu_LTinv) @ LT_Phiux # [..., N, N] + [..., N, M] @ [..., M, M] @ [..., M, N] -> [..., N, N]
+        # print(qx_sigma.to_dense())
         qx_sigma = qx_sigma.add_jitter(self.jitter_val)
+        # print(qx_sigma.to_dense())
 
-        # qx_mu = mu_x + Phixu_L @ (Linv_m - Linv_mu)
-        qx_mu = mu_x + torch.einsum("...ij,...j->...i", Phixu_L, Linv_m - Linv_mu) # [..., M, M] @ [..., M] -> [..., M]
+        # We are applying unsqueeze -> squeeze, instead of the einsum below, to preserve everything as a linear operator.
+        qx_mu = mu_x + (Phixu_L @ (Linv_m - Linv_mu).unsqueeze(-1)).squeeze(-1) # [..., N, M] @ [..., M] -> [..., N]
+        # qx_mu = mu_x + torch.einsum("...ij,...j->...i", Phixu_L, Linv_m - Linv_mu) # [..., M, M] @ [..., M] -> [..., M]
         return MultivariateNormal(qx_mu, qx_sigma)
     
     def kl_divergence(self):

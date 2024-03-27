@@ -5,6 +5,7 @@ import torch
 from math import comb 
 from spherical_harmonics import SphericalHarmonics
 from gpytorch.kernels import Kernel, ScaleKernel
+from lab import on_device
 
 
 
@@ -125,7 +126,8 @@ def spherical_harmonics(x: Tensor, max_ell: int, d: int) -> Tensor:
 
     # SphericalHarmonics works with S^{d-1}, while we work with S^d as in GeometricKernels. 
     # Also SphericalHarmonics uses levels up to `degrees` (exclusive); hence, the +1. 
-    x = SphericalHarmonics(dimension=d + 1, degrees=max_ell)(x) # [... * O, N, num_harmonics]
+    with on_device(x.device):
+        x = SphericalHarmonics(dimension=d + 1, degrees=max_ell)(x) # [... * O, N, num_harmonics]
 
     return x.reshape(*batch_shape, n, total_num_harmonics(max_ell, d)) # [..., O, N, num_harmonics]
 

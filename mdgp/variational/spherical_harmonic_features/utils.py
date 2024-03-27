@@ -77,7 +77,7 @@ def matern_spectral_density_normalizer(d: int, max_ell: int, kappa: Tensor, nu: 
     n = torch.arange(max_ell).to(kappa.device)
     spectral_values = unnormalized_matern_spectral_density(n=n, d=d, kappa=kappa, nu=nu) # [O, max_ell + 1, 1]
     num_harmonics_per_level = num_harmonics(n, d=d) # [max_ell + 1]
-    normalizer = spectral_values.mT @ num_harmonics_per_level # [O, 1, max_ell + 1] @ [max_ell + 1] -> [O, 1]
+    normalizer = spectral_values.mT @ num_harmonics_per_level.to(spectral_values.dtype) # [O, 1, max_ell + 1] @ [max_ell + 1] -> [O, 1]
     return normalizer.unsqueeze(-2) # [O, 1, 1]
 
 

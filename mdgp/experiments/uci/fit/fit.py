@@ -87,6 +87,7 @@ def train(dataset: UCIDataset, model: DeepGP, projector: Projector, fit_args: Fi
 
 def evaluate_deep(dataset: UCIDataset, model: DeepGP, projector: Projector, device: torch.device, fit_args: FitArguments) -> dict[str, float]:
     with torch.no_grad(), gpytorch.settings.num_likelihood_samples(fit_args.test_num_samples):
+        test_y_std = dataset.test_y_std.to(device)
         test_loader = DataLoader(dataset.test_dataset, batch_size=fit_args.get_test_batch_size(dataset), 
                                  shuffle=True, collate_fn=to_device(default_collate, device))
         tll, se = [], []
@@ -94,8 +95,8 @@ def evaluate_deep(dataset: UCIDataset, model: DeepGP, projector: Projector, devi
             x_batch = projector(x_batch)
             out = model.likelihood(model(x_batch))
             out = projector.inverse(out)
-            tll.append(test_log_likelihood_batch(out, y_batch, dataset.test_y_std))
-            se.append(squared_error_batch(out, y_batch, dataset.test_y_std))
+            tll.append(test_log_likelihood_batch(out, y_batch, test_y_std))
+            se.append(squared_error_batch(out, y_batch, test_y_std))
         tll = torch.cat(tll, dim=-1).mean().item()
         mse = torch.cat(se, dim=-1).mean().item()
         print(f"TLL: {tll}, MSE: {mse}")

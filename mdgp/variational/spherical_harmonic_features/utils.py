@@ -74,9 +74,9 @@ def matern_spectral_density_normalizer(d: int, max_ell: int, kappa: Tensor, nu: 
     Depends on kappa and nu. Also depends on max_ell, as truncation of the infinite 
     sum from Karhunen-Loeve decomposition. 
     """
-    n = torch.arange(max_ell)
+    n = torch.arange(max_ell).to(kappa)
     spectral_values = unnormalized_matern_spectral_density(n=n, d=d, kappa=kappa, nu=nu) # [O, max_ell + 1, 1]
-    num_harmonics_per_level = num_harmonics(torch.arange(max_ell), d=d).type(spectral_values.dtype) # [max_ell + 1]
+    num_harmonics_per_level = num_harmonics(n, d=d) # [max_ell + 1]
     normalizer = spectral_values.mT @ num_harmonics_per_level # [O, 1, max_ell + 1] @ [max_ell + 1] -> [O, 1]
     return normalizer.unsqueeze(-2) # [O, 1, 1]
 
@@ -104,7 +104,7 @@ def matern_repeated_ahat(max_ell: int, max_ell_prior: int, d: int, kappa: Tensor
     """
     Returns a tensor of repeated ahat values for each ell. 
     """
-    ells = torch.arange(max_ell) # [max_ell + 1]
+    ells = torch.arange(max_ell).to(kappa) # [max_ell + 1]
     ahat = matern_ahat(ell=ells, d=d, max_ell=max_ell_prior, kappa=kappa, nu=nu, sigma=sigma) # [O, max_ell + 1, 1]
     repeats = num_harmonics(ell=ells, d=d) # [max_ell + 1]
     return torch.repeat_interleave(ahat, repeats=repeats, dim=-2) # [O, num_harmonics, 1]
@@ -165,7 +165,7 @@ def matern_LT_Phi_from_kernel(x: Tensor, covar_module: Kernel, num_levels: int, 
         sigma = covar_module.outputscale.sqrt()
         base_kernel = covar_module.base_kernel
     else:
-        sigma = torch.tensor(1.0, dtype=x.dtype, device=x.device)
+        sigma = x.new_ones(1)
         base_kernel = covar_module
     kappa = base_kernel.lengthscale
     nu = base_kernel.nu 

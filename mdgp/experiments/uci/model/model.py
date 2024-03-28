@@ -4,15 +4,12 @@ from mdgp.experiments.uci.model.euclidean import EuclideanDeepGP
 from mdgp.experiments.uci.model.geometric import SHFDeepGP
 from mdgp.experiments.uci.model.projectors import Projector, IdentityProjector, SphereProjector
 
-# Settings from the paper 
-NUM_INDUCING_POINTS = 100
-
 
 @dataclass
 class ModelArguments:
     model_name: str = field(default='euclidean', metadata={'help': 'Name of the model. Must be one of ["geometric_manifold", "euclidean_manifold", "euclidean"]'})
     num_layers: int = field(default=1, metadata={'help': 'Number of layers in the model'})
-    num_inducing: int = field(default=NUM_INDUCING_POINTS, metadata={'help': 'Number of inducing points'})
+    num_inducing: int | None = field(default=None, metadata={'help': 'Number of inducing points. None to use the same value as the number of spherical harmonics in the Spherical Harmonic Features model.'})
 
     def get_model(self, dataset) -> DeepGP:
         if self.model_name == 'euclidean':

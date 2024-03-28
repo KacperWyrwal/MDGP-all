@@ -17,15 +17,22 @@ LIKELIHOOD_VARIANCE = 0.01
 LENGTHSCALE = 2.0
 INNER_LAYER_VARIANCE = 1e-5
 OUTPUT_LAYER_VARIANCE = 1.0 # This is a (reasonable) guess
-NUM_INDUCING_POINTS = 100
 MAX_HIDDEN_DIMS = 30
+
+
+# From Spherical Harmonic Features
+dimension_to_num_inducing_points = {
+    4: 336,
+    6: 294,
+    8: 210,
+}
 
 
 def get_hidden_dims(dataset: UCIDataset) -> int:
     return min(MAX_HIDDEN_DIMS, dataset.dimension)
 
 
-def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 100) -> Tensor:
+def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 1000) -> Tensor:
     """
     Initialize inducing points using kmeans. (from paper)
     """
@@ -34,7 +41,7 @@ def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 100) -> Tens
             return torch.from_numpy(kmeans2(x, k, missing='raise')[0]).to(x.device, x.dtype)
         except ClusterError:
             continue 
-    raise ClusterError(f"Failed to find {k} clusters in {num_retries} retries.")
+    return torch.from_numpy(kmeans2(x, k, missing='warn')[0]).to(x.device, x.dtype)
 
 
 def get_inducing_points(dataset: UCIDataset, num_inducing_points: int) -> Tensor:
@@ -80,8 +87,10 @@ class EuclideanDeepGPLayer(DeepGPLayer):
     
 
 class EuclideanDeepGP(DeepGP):
-    def __init__(self, dataset: UCIDataset, num_layers: int, num_inducing_points: int = NUM_INDUCING_POINTS):
+    def __init__(self, dataset: UCIDataset, num_layers: int, num_inducing_points: int = None):
         super().__init__()
+        if num_inducing_points is None:
+            num_inducing_points = dimension_to_num_inducing_points[dataset.dimension]
         num_hidden_dims = get_hidden_dims(dataset)
         inducing_points = get_inducing_points(dataset, num_inducing_points)
 

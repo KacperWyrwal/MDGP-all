@@ -1,0 +1,19 @@
+{
+    "model_arguments": {
+        "model_name": "geometric",
+        "num_layers": [1, 2, 3, 4, 5],
+        "num_inducing": 100
+    },
+    "data_arguments": {
+        "dataset_name": ["kin8nm", "power", "concrete"]
+    },
+    "fit_arguments": {
+        "train_batch_size": 512,
+        "test_batch_size": 512,
+        "num_iterations": 1000,
+        "train_num_samples": 10, 
+        "test_num_samples": 10
+    },
+    "runs": [0, 1, 2, 3, 4],
+    "status": "ready"
+}

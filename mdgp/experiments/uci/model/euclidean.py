@@ -69,7 +69,7 @@ class EuclideanDeepGPLayer(DeepGPLayer):
         )
         super().__init__(variational_strategy, input_dims, output_dims)
 
-        base_kernel = RBFKernel(batch_shape=batch_shape)
+        base_kernel = RBFKernel(batch_shape=batch_shape, ard_num_dims=input_dims)
         base_kernel.lengthscale = LENGTHSCALE
         # Use ard_num_dims=input_dims adds a lengthscale for each input dimension 
         # "we choose the RBF kernel with a lengthscale for each dimension" (from paper)

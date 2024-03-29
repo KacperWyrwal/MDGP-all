@@ -41,6 +41,7 @@ def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 1000) -> Ten
             return torch.from_numpy(kmeans2(x, k, missing='raise')[0]).to(x.device, x.dtype)
         except ClusterError:
             continue 
+    
     return torch.from_numpy(kmeans2(x, k, missing='warn')[0]).to(x.device, x.dtype)
 
 
@@ -90,6 +91,7 @@ class EuclideanDeepGP(DeepGP):
     def __init__(self, dataset: UCIDataset, num_layers: int, num_inducing_points: int = None):
         super().__init__()
         if num_inducing_points is None:
+            print("Using default number of inducing points.")
             num_inducing_points = dimension_to_num_inducing_points[dataset.dimension]
         num_hidden_dims = get_hidden_dims(dataset)
         inducing_points = get_inducing_points(dataset, num_inducing_points)

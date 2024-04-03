@@ -5,7 +5,7 @@
         "num_inducing": null
     },
     "data_arguments": {
-        "dataset_name": ["kin8nm", "power", "concrete", "energy", "yacht"]
+        "dataset_name": ["kin8nm", "power", "concrete", "energy", "yacht", "boston"]
     },
     "fit_arguments": {
         "train_batch_size": 512,

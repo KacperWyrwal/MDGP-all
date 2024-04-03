@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field 
-from mdgp.experiments.uci.data.datasets import Energy, Power, Kin8mn, Concrete, Yacht, UCIDataset
+from mdgp.experiments.uci.data.datasets import Energy, Power, Kin8mn, Concrete, Yacht, Boston, UCIDataset
 
 
 @dataclass
@@ -18,5 +18,7 @@ class DataArguments:
             return Yacht()
         elif self.dataset_name == 'energy':
             return Energy()
+        elif self.dataset_name == 'boston':
+            return Boston()
         else:
             raise ValueError(f"Unknown dataset: {self.dataset_name}")

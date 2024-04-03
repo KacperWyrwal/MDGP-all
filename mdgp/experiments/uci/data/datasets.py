@@ -171,3 +171,17 @@ class Yacht(UCIDataset):
         df = pd.read_csv(self.url, delim_whitespace=True, header=None)
         os.makedirs(self.path, exist_ok=True)
         df.to_csv(self.csv_path, index=False)
+
+
+class Boston(UCIDataset):
+
+    DEFAULT_URL = UCIDataset.UCI_BASE_URL + 'housing/housing.data'
+
+    def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
+        url = url or Boston.DEFAULT_URL
+        super().__init__(name='boston', path=path, url=url, num_outputs=1, seed=seed)
+
+    def download_data(self):
+        df = pd.read_csv(self.url, delim_whitespace=True, header=None)
+        os.makedirs(self.path, exist_ok=True)
+        df.to_csv(self.csv_path, index=False)

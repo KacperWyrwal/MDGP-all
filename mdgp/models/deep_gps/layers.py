@@ -66,7 +66,6 @@ class GeometricDeepGPLayer(DeepGPLayer):
     def __init__(self, 
         space: Space, 
         input_dims: int, 
-        variational_strategy_factory: VariationalStrategyFactory,
         output_dims: int | None = None,
         mean: str = 'zero', 
         nu: float = 2.5, 

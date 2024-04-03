@@ -15,7 +15,7 @@ class PosteriorSampler(torch.nn.Module):
         self.rff_sampler = rff_sampler
         self.vi_sampler = vi_sampler
         self.inducing_points = inducing_points
-        self.inv_jitter = inv_jitter
+        self.inv_jitter = inv_jitter or gpytorch.settings.cholesky_jitter.value(torch.get_default_dtype())
         self.whitened_variational_strategy = whitened_variational_strategy
 
     def sample_prior(self, x, z, sample_shape: torch.Size = torch.Size([]), resample=True):
@@ -35,7 +35,7 @@ class PosteriorSampler(torch.nn.Module):
             u = torch.einsum('...mn, ...n -> ...m', K_z_z.cholesky().evaluate(), u) + self.rff_sampler.mean_module(z)
         delta = u - Phi_w_z # [S, O, M] or [S, M]
 
-        K_z_z = K_z_z.expand(*(1, ) * len(sample_shape), *K_z_z.shape) # [S] + [O, M, M] or [S] + [M, M]
+        # K_z_z = K_z_z.expand(*(1, ) * len(sample_shape), *K_z_z.shape) # [S] + [O, M, M] or [S] + [M, M]
         k_x_z = k_x_z.expand(*sample_shape, *k_x_z.shape).evaluate() # [S, O] + [N, M] or [S] + [N, M]
         delta = delta.unsqueeze(-1) # [S, O, M, 1] or [S, M, 1]
         return gpytorch.solve((K_z_z.add_jitter(self.inv_jitter)), delta, k_x_z).squeeze(-1)

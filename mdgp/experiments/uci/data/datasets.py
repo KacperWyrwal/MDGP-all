@@ -158,3 +158,16 @@ class EnergyDSVI(UCIDataset):
         df = pd.read_excel(self.url).drop(columns='Y2')
         os.makedirs(self.path, exist_ok=True)
         df.to_csv(self.csv_path, index=False)
+
+
+class Yacht(UCIDataset):
+    DEFAULT_URL = UCIDataset.UCI_BASE_URL + '00243/yacht_hydrodynamics.data'
+
+    def __init__(self, path: str = '../../data/uci/', seed: int | None = None, url: str | None = None):
+        url = url or Yacht.DEFAULT_URL
+        super().__init__(name='yacht', path=path, url=url, num_outputs=1, seed=seed)
+
+    def download_data(self):
+        df = pd.read_csv(self.url, delim_whitespace=True, header=None)
+        os.makedirs(self.path, exist_ok=True)
+        df.to_csv(self.csv_path, index=False)

@@ -19,7 +19,6 @@ __all__ = [
     'ExperimentConfigReader',
     'create_experiment_config',
     'create_experiment_config_from_json',
-    'set_experiment_seed',
 ]
 
 

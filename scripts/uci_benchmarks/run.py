@@ -67,4 +67,5 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', action='store_true', help='Whether to overwrite existing experiments. Default is False.')
     args = parser.parse_args()
 
+    print(f"Looking for experiments to run... (overwrite={args.overwrite})")
     crawl_and_run(start_directory=args.dir_path, config_file_name=args.config_name, overwrite=args.overwrite)

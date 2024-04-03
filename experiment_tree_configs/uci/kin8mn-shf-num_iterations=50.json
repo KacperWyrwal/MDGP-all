@@ -1,0 +1,16 @@
+{
+    "model_arguments": {
+        "model_name": "geometric",
+        "num_layers": [1, 2, 3],
+        "num_inducing": 100
+    },
+    "data_arguments": {
+        "dataset_name": "kin8nm"
+    },
+    "fit_arguments": {
+        "batch_size": 512,
+        "num_iterations": 50
+    },
+    "runs": [0, 1, 2],
+    "status": "ready"
+}

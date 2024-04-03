@@ -49,7 +49,7 @@ class RFFSampler(torch.nn.Module):
             key=self.base_kernel.key, 
             normalize=True
         )
-        return features * self.base_kernel.batch_shape_scaling_factor.sqrt()
+        return features
 
     def sample(self, inputs, weights): 
         """

@@ -40,7 +40,7 @@ class _GeometricMaternKernel(BaseMaternKernel, GPytorchGeometricKernel):
         base_kernel = MaternGeometricKernel(
             space=space, 
             num=num, 
-            normalize=True, 
+            normalize=kwargs.pop('normalize', True), 
             return_feature_map=False, 
             key=self.key, 
         )

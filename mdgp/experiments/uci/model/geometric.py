@@ -32,6 +32,7 @@ dimension_to_num_harmonics_variational = {
     4: 336,
     6: 294,
     8: 210,
+    13: 119, 
 }
 
 

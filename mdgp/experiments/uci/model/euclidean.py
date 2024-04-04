@@ -25,6 +25,7 @@ dimension_to_num_inducing_points = {
     4: 336,
     6: 294,
     8: 210,
+    13: 119, 
 }
 
 

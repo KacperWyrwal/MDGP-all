@@ -59,7 +59,7 @@ def crawl_and_run(start_directory, config_file_name='config.json', overwrite=Fal
 
 
 if __name__ == '__main__':
-    torch.set_default_dtype(torch.float32)
+    torch.set_default_dtype(torch.float64)
 
     parser = ArgumentParser(description='Run experiment on UCI datasets')
     parser.add_argument('dir_path', type=str, help='The parent directory to start crawling from.')

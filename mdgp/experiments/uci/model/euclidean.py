@@ -39,11 +39,11 @@ def empty_cluster_safe_kmeans(x: Tensor, k: int, num_retries: int = 1000) -> Ten
     """
     for _ in range(num_retries):
         try:
-            return torch.from_numpy(kmeans2(x, k, missing='raise')[0]).to(x.device, x.dtype)
+            return torch.from_numpy(kmeans2(x.cpu(), k, missing='raise')[0]).to(x.device, x.dtype)
         except ClusterError:
             continue 
     
-    return torch.from_numpy(kmeans2(x, k, missing='warn')[0]).to(x.device, x.dtype)
+    return torch.from_numpy(kmeans2(x.cpu(), k, missing='warn')[0]).to(x.device, x.dtype)
 
 
 def get_inducing_points(dataset: UCIDataset, num_inducing_points: int) -> Tensor:

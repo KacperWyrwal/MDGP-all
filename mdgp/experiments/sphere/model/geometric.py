@@ -6,7 +6,7 @@ from gpytorch.distributions import MultivariateNormal
 from geometric_kernels.spaces import Hypersphere
 from mdgp.kernels import GeometricMaternKernel
 from mdgp.samplers import RFFSampler, VISampler, PosteriorSampler, sample_elementwise
-from mdgp.models.initializers import sphere_kmeans_centers
+from mdgp.utils.sphere import sphere_kmeans_centers
 from mdgp.experiments.sphere.data import SphereDataset
 from mdgp.experiments.sphere.model.euclidean import EuclideanDeepGPLayer
 

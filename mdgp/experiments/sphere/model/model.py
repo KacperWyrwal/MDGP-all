@@ -1,7 +1,5 @@
 # Imports 
 from dataclasses import dataclass, field
-from geometric_kernels.spaces import Hypersphere
-from gpytorch.priors import GammaPrior
 from mdgp.experiments.sphere.model.euclidean import EuclideanDeepGP
 from mdgp.experiments.sphere.data import SphereDataset
 from mdgp.experiments.sphere.model.geometric import FullyGeometricDeepGP, InputGeometricDeepGP

@@ -54,7 +54,7 @@ def get_inducing_points(dataset: UCIDataset, num_inducing_points: int) -> Tensor
 
 
 class EuclideanDeepGPLayer(DeepGPLayer):
-    def __init__(self, inducing_points, output_dims, hidden: bool = False):
+    def __init__(self, inducing_points, output_dims, hidden: bool = False, learn_inducing_locations: bool = False):
         input_dims = inducing_points.size(-1)
         batch_shape = torch.Size([output_dims]) if output_dims is not None else torch.Size([])
 
@@ -66,7 +66,7 @@ class EuclideanDeepGPLayer(DeepGPLayer):
             self,
             inducing_points,
             variational_distribution,
-            learn_inducing_locations=True,
+            learn_inducing_locations=learn_inducing_locations,
         )
         super().__init__(variational_strategy, input_dims, output_dims)
 
@@ -89,7 +89,7 @@ class EuclideanDeepGPLayer(DeepGPLayer):
     
 
 class EuclideanDeepGP(DeepGP):
-    def __init__(self, dataset: UCIDataset, num_layers: int, num_inducing_points: int = None):
+    def __init__(self, dataset: UCIDataset, num_layers: int, num_inducing_points: int = None, learn_inducing_locations: bool = False):
         super().__init__()
         if num_inducing_points is None:
             num_inducing_points = dimension_to_num_inducing_points[dataset.dimension]
@@ -97,8 +97,8 @@ class EuclideanDeepGP(DeepGP):
         inducing_points = get_inducing_points(dataset, num_inducing_points)
 
         self.layers = torch.nn.ModuleList(
-            [EuclideanDeepGPLayer(inducing_points, num_hidden_dims, hidden=True) for _ in range(num_layers - 1)] + 
-            [EuclideanDeepGPLayer(inducing_points, dataset.num_outputs, hidden=False)]
+            [EuclideanDeepGPLayer(inducing_points, num_hidden_dims, hidden=True, learn_inducing_locations=learn_inducing_locations) for _ in range(num_layers - 1)] + 
+            [EuclideanDeepGPLayer(inducing_points, dataset.num_outputs, hidden=False, learn_inducing_locations=learn_inducing_locations)]
         )
         self.likelihood = MultitaskGaussianLikelihood(dataset.num_outputs)
         self.likelihood.noise = LIKELIHOOD_VARIANCE

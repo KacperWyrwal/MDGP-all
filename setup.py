@@ -4,17 +4,17 @@
 from setuptools import find_packages, setup
 
 requirements = [
-    # "torch", 
-    # "gpytorch",
+    "torch", 
+    "gpytorch",
     # "pymanopt",
     # "botorch",
-    # "geoopt",
+    "geoopt",
     # "lightning",
-    # "plotly",
-    # "gpytorch @ git+https://github.com/KacperWyrwal/gpytorch-efficient-expand.git@master",
-    # "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
-    # "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
-    # "tqdm",
+    "plotly",
+    "gpytorch @ git+https://github.com/KacperWyrwal/gpytorch-efficient-expand.git@master",
+    "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
+    "coclust @ git+https://github.com/KacperWyrwal/cclust_package-MDGP.git@master", 
+    "tqdm",
     # "geometrickernels @ git+https://github.com/KacperWyrwal/GeometricKernels-torch-vectorized.git@devel",
 ]
 

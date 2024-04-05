@@ -1,0 +1,24 @@
+{
+    "model_arguments": {
+        "model_name": "input_geometric",
+        "num_layers": [1, 2, 3, 4, 5],
+        "num_inducing": 60,
+        "gvf": null,
+        "outputscale_mean": 0.01, 
+        "learn_inducing_locations": true
+    },
+    "data_arguments": {
+        "dataset_name": "singular",
+        "num_train": 800,
+        "num_test": 2000
+    },
+    "fit_arguments": {
+        "num_epochs": 1000,
+        "train_batch_size": 1024,
+        "test_batch_size": 1024,
+        "train_num_samples": 10,
+        "test_num_samples": 10
+    },
+    "runs": [0, 1, 2, 3, 4],
+    "status": "ready"
+}

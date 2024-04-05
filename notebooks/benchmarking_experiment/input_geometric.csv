@@ -1,0 +1,27 @@
+Model,No. Layers,model_arguments.num_inducing,model_arguments.gvf,model_arguments.outputscale_mean,model_arguments.learn_inducing_locations,model_arguments.geometric_optimizer,data_arguments.dataset_name,data_arguments.num_train,data_arguments.num_test,fit_arguments.num_epochs,fit_arguments.train_batch_size,fit_arguments.test_batch_size,fit_arguments.train_num_samples,fit_arguments.test_num_samples,run,status,TLL,mse
+Input Geometric,3,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,0,completed,1.7729857159053062,1.737150172225712
+Input Geometric,3,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,4,completed,1.718993976935546,2.044769756233947
+Input Geometric,3,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,2,completed,1.8287384874055064,1.6650384381063432
+Input Geometric,3,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,3,completed,1.619298949703827,2.486786380438036
+Input Geometric,3,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,1,completed,1.8290918817484765,1.7177565252106948
+Input Geometric,4,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,0,completed,1.50534472645442,2.8083434789312856
+Input Geometric,4,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,4,completed,1.6929519841122262,2.1964721600374557
+Input Geometric,4,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,2,completed,1.8393391571570068,1.6737881844811462
+Input Geometric,4,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,3,completed,1.6636874273382851,2.2064925207532724
+Input Geometric,4,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,1,completed,1.6400237742641648,2.380614307673868
+Input Geometric,2,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,0,completed,1.6289302108185,2.4307787892169594
+Input Geometric,2,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,4,completed,1.4954695137220424,3.176405201597217
+Input Geometric,2,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,2,completed,1.5090288887569985,3.104433392044387
+Input Geometric,2,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,3,completed,1.6388764210856157,2.3775297974221514
+Input Geometric,2,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,1,completed,1.8164044507825436,1.7286865584588509
+fully_geometric,1,60,projected,0.01,True,True,smooth,400,500,10,1024,1024,10,10,0,completed,-1.1059828642464344,12.30290866848988
+Input Geometric,5,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,0,completed,1.8921532078032024,1.5289613248941394
+Input Geometric,5,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,4,completed,1.4887989020564147,3.239098580205398
+Input Geometric,5,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,2,completed,1.926447544810017,1.4112510590165237
+Input Geometric,5,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,3,completed,1.7670184874080748,1.922787050239168
+Input Geometric,5,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,1,completed,1.8661880279451395,1.644216353976006
+Input Geometric,1,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,0,completed,1.4741144757486064,2.981776870745411
+Input Geometric,1,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,4,completed,1.4950007175916726,2.8567762467431947
+Input Geometric,1,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,2,completed,1.4604654301468103,3.0959663002767304
+Input Geometric,1,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,3,completed,1.4704284807112222,3.0289136317074377
+Input Geometric,1,60,,0.01,True,True,singular,800,2000,1000,1024,1024,10,10,1,completed,1.4788551658865527,2.965269447523611

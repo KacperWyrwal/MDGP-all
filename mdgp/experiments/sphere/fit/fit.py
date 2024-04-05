@@ -52,12 +52,7 @@ def to_device(collate_fn, device: torch.device):
 
 def train(dataset: SphereDataset, model: DeepGP, fit_args: FitArguments, device: torch.device, model_args: ModelArguments | None = None) -> list[float]: 
     with gpytorch.settings.num_likelihood_samples(fit_args.train_num_samples):
-        if model_args is not None and model_args.need_geometry_aware_optimizer:
-            print("Using RiemannianAdam")
-            optimizer = geoopt.optim.RiemannianAdam(model.parameters(), lr=LR)
-        else:
-            print("Using Adam")
-            optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+        optimizer = torch.optim.Adam(model.parameters(), lr=LR)
         elbo = gpytorch.mlls.DeepApproximateMLL(VariationalELBO(model.likelihood, model, dataset.train_y.size(0)))
         train_loader = DataLoader(dataset.train_dataset, batch_size=fit_args.get_train_batch_size(dataset), 
                                 shuffle=True, collate_fn=to_device(default_collate, device))

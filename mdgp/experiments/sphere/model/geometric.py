@@ -288,6 +288,7 @@ class InputGeometricDeepGP(gpytorch.models.deep_gps.DeepGP):
                         inducing_points=inducing_points,
                         hidden=True,
                         outputscale_prior_mean=outputscale_prior_mean,
+                        learn_inducing_locations=True, 
                     ) for _ in range(num_layers - 2)
                 ] + 
                 [
@@ -295,6 +296,7 @@ class InputGeometricDeepGP(gpytorch.models.deep_gps.DeepGP):
                         inducing_points=inducing_points,
                         hidden=False,
                         outputscale_prior_mean=OUTPUT_LAYER_VARIANCE,
+                        learn_inducing_locations=True,
                     )
                 ]
             )

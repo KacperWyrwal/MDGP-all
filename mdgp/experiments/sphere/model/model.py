@@ -18,18 +18,11 @@ class ModelArguments:
     gvf: str = field(default='projected', metadata={'help': 'Method of mapping from the manifold to the tangent space. Must be one of ["projected", "frame"]'})
     outputscale_mean: float = field(default=0.01, metadata={'help': 'Mean of the outputscale'})
     learn_inducing_locations: bool = field(default=True, metadata={'help': 'Whether to learn inducing locations'})
-    geometric_optimizer: bool = field(default=False, metadata={'help': 'Whether to use a geometry-aware optimizer'})
 
     def __post_init__(self):
         assert self.model_name in ["fully_geometric", "euclidean", "input_geometric"]
-        assert self.gvf in ["projected", "frame"]
+        assert self.gvf in ["projected", "frame", None]
         assert self.num_inducing in [60, 300]
-        if self.geometric_optimizer is False:
-            self.geometric_optimizer = self.model_name == 'fully_geometric' or self.model_name == 'input_geometric' and self.learn_inducing_locations
-
-    @property 
-    def need_geometry_aware_optimizer(self) -> bool:
-        return self.geometric_optimizer
     
     def get_model(self, dataset: SphereDataset):
         if self.model_name == 'fully_geometric':

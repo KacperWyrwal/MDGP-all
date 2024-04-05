@@ -14,8 +14,8 @@
     },
     "fit_arguments": {
         "num_epochs": 2,
-        "train_batch_size": 32,
-        "test_batch_size": 32,
+        "train_batch_size": 1024,
+        "test_batch_size": 1024,
         "train_num_samples": 10,
         "test_num_samples": 10
     },

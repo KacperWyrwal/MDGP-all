@@ -1,7 +1,7 @@
 {
     "model_arguments": {
         "model_name": "euclidean",
-        "num_layers": [4, 5],
+        "num_layers": [1, 2, 3, 4, 5],
         "num_inducing": 100
     },
     "data_arguments": {
@@ -14,6 +14,6 @@
         "train_num_samples": 10, 
         "test_num_samples": 10
     },
-    "runs": [0, 1],
+    "runs": [0, 1, 2, 3, 4],
     "status": "ready"
 }

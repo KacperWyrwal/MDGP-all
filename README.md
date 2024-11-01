@@ -1,5 +1,7 @@
-# Residual Manifold Deep GPs 
-Code for the Residual Deep Gaussian Processes on Manifolds for Geometry-aware Bayesian Optimization on Hyperspheres paper. 
+# Code for the paper "Residual Deep Gaussian Processes on Manifolds for Geometry-aware Bayesian Optimization on Hyperspheres".
+
+## For the code to the follow-up paper "Residual Deep Gaussian Processes on Manifolds", which extends and refines this workshop paper, visit https://github.com/KacperWyrwal/residual-deep-gps. 
+ 
 
 # Links 
 - OpenReview: https://openreview.net/forum?id=u6NK3Jm4ka.
